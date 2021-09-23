@@ -77,3 +77,10 @@ docs/book/*/book
 
 bindings/rust/wasmedge-sys/examples/.ipynb_checkpoints/*
 .DS_Store
+
+# intelliJ IDEA
+**/.idea/*
+**.iml
+## Gradle
+**/.gradle/*
+**/build
