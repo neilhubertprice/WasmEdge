@@ -84,3 +84,4 @@ bindings/rust/wasmedge-sys/examples/.ipynb_checkpoints/*
 ## Gradle
 **/.gradle/*
 **/build
+**/cmake-build-debug
