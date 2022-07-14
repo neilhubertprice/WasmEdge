@@ -4,6 +4,7 @@
 
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "wasmedge/wasmedge.h"
 #include "jni.h"
 #include "common.h"

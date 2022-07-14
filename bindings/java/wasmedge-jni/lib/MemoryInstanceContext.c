@@ -1,6 +1,7 @@
 //
 // Created by Kenvi Zhu on 2022-01-14.
 //
+#include <stdlib.h>
 #include "../jni/org_wasmedge_MemoryInstanceContext.h"
 #include "wasmedge/wasmedge.h"
 #include "common.h"
