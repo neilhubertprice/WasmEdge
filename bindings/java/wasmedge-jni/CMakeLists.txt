@@ -41,5 +41,10 @@ add_library(${TARGET} SHARED
 
 target_link_libraries(${TARGET} wasmedge_c)
 
+set_target_properties(${TARGET} PROPERTIES
+        BUILD_RPATH ${_WasmEdge_ROOT}/lib
+        INSTALL_RPATH ${_WasmEdge_ROOT}/lib
+        )
+
 install(TARGETS ${TARGET}
         LIBRARY DESTINATION lib)
