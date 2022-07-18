@@ -119,7 +119,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromFile
     //WasmEdge_Value Params[1] = { WasmEdge_ValueGenI32(5) };
     WasmEdge_Value *Returns = malloc(sizeof(WasmEdge_Value) * return_size);
     /* Function name. */
-    WasmEdge_String FuncName = WasmEdge_StringCreateByCString("fib");
+    WasmEdge_String FuncName = WasmEdge_StringCreateByCString(c_func_name);
     /* Run the WASM function from file. */
     WasmEdge_Result Res = WasmEdge_VMRunWasmFromFile(VMCxt, c_file_path, FuncName, wasm_params, param_size, Returns, return_size);
 
