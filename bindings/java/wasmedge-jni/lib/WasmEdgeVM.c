@@ -254,8 +254,8 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_getFunctionList
     WasmEdge_VMContext* vmContext = getVmContext(env, thisObject);
 
     uint32_t funcLen = WasmEdge_VMGetFunctionListLength(vmContext);
-    const WasmEdge_FunctionTypeContext** funcList = (const WasmEdge_FunctionTypeContext**)malloc(sizeof (WasmEdge_FunctionTypeContext *));
-    WasmEdge_String* nameList = (WasmEdge_String*)malloc(sizeof (struct WasmEdge_String));
+    const WasmEdge_FunctionTypeContext** funcList = (const WasmEdge_FunctionTypeContext**)malloc(sizeof (WasmEdge_FunctionTypeContext *) * funcLen);
+    WasmEdge_String* nameList = (WasmEdge_String*)malloc(sizeof (struct WasmEdge_String) * funcLen);
     uint32_t RealFuncNum = WasmEdge_VMGetFunctionList(vmContext, nameList, funcList, funcLen);
 
     ConvertToJavaFunctionList(env, nameList, funcList, RealFuncNum, jFuncList);
