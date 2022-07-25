@@ -1,6 +1,10 @@
 package org.wasmedge.enums;
 
 public enum Proposal {
+    WasmEdge_Proposal_ImportExportMutGlobals,
+    WasmEdge_Proposal_NonTrapFloatToIntConversions,
+    WasmEdge_Proposal_SignExtensionOperators,
+    WasmEdge_Proposal_MultiValue,
     WasmEdge_Proposal_BulkMemoryOperations,
     WasmEdge_Proposal_ReferenceTypes,
     WasmEdge_Proposal_SIMD,
