@@ -39,7 +39,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_MemoryInstanceContext_setData
 
     WasmEdge_MemoryInstanceSetData(memoryInstanceContext, buff, jOffSet, jLength);
 
-    (*env)->ReleaseByteArrayElements(env, jData, buff, jLength);
+    (*env)->ReleaseByteArrayElements(env, jData, buff, 0);
 }
 
 

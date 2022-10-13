@@ -317,7 +317,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_registerModuleFromBuffer
     WasmEdge_String wModName = WasmEdge_StringCreateByCString(modName);
 
     WasmEdge_VMRegisterModuleFromBuffer(vm, wModName, data, size);
-    (*env)->ReleaseByteArrayElements(env, jBuff, data, size);
+    (*env)->ReleaseByteArrayElements(env, jBuff, data, 0);
     (*env)->ReleaseStringUTFChars(env, jModName, modName);
     WasmEdge_StringDelete(wModName);
 }
@@ -397,7 +397,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromBuffer
     }
 
     // release resources
-    (*env)->ReleaseByteArrayElements(env, jBuff, buff, size);
+    (*env)->ReleaseByteArrayElements(env, jBuff, buff, 0);
     (*env)->ReleaseStringUTFChars(env, jFuncName, funcName);
 
 }

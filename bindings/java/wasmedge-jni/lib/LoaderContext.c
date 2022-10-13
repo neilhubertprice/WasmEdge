@@ -41,7 +41,7 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_LoaderContext_parseFromBuffer
 
     WasmEdge_LoaderParseFromBuffer(loader, &mod, (uint8_t*)data, jSize);
 
-    (*env)->ReleaseByteArrayElements(env, jBuf, data, jSize);
+    (*env)->ReleaseByteArrayElements(env, jBuf, data, 0);
 
     return createAstModuleContext(env, mod);
 }

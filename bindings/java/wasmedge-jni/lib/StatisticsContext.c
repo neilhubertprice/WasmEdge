@@ -58,7 +58,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_StatisticsContext_setCostTable
 
     WasmEdge_StatisticsSetCostTable(statCxt, data, len);
 
-    (*env)->ReleaseLongArrayElements(env, jCostTable, data, len);
+    (*env)->ReleaseLongArrayElements(env, jCostTable, data, 0);
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_StatisticsContext_setCostLimit
