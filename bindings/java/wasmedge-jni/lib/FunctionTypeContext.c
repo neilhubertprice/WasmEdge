@@ -110,7 +110,7 @@ jobject ConvertToValueTypeList(JNIEnv* env, enum WasmEdge_ValType* list, int32_t
         return NULL;
     }
 
-    if(checkAndHandleException(env, "Error when creating value type list\n")) {
+    if(checkAndHandleException(env, "Error when creating value type list")) {
         return NULL;
     }
 
@@ -130,7 +130,7 @@ jobject ConvertToValueTypeList(JNIEnv* env, enum WasmEdge_ValType* list, int32_t
 
         (*env)->CallBooleanMethod(env, jList, addMethod, valueType);
 
-        if(checkAndHandleException(env, "Error when adding value type\n")) {
+        if(checkAndHandleException(env, "Error when adding value type")) {
             return NULL;
         }
 
@@ -163,9 +163,7 @@ void ConvertToJavaFunctionList(JNIEnv * env, WasmEdge_String* nameList, const Wa
 
         (*env)->CallBooleanMethod(env, jFuncList, addMethod, jFunc);
 
-        sprintf(buf, "Error when converting to java function list with index: %d", i);
-
-        if(checkAndHandleException(env, buf)) {
+        if(checkAndHandleException(env, "Error when converting to java function list")) {
             return ;
         }
     }
@@ -209,7 +207,7 @@ jobject ConvertToJavaFunctionType(JNIEnv* env, const WasmEdge_FunctionTypeContex
 
     jobject jFunc = (*env)->NewObject(env, functionTypeClass, constructor, jParamList, jReturnList);
 
-    if(checkAndHandleException(env, "Error when creating function type context.\n")) {
+    if(checkAndHandleException(env, "Error when creating function type context")) {
         return NULL;
     }
 
@@ -222,7 +220,7 @@ jobject ConvertToJavaFunctionType(JNIEnv* env, const WasmEdge_FunctionTypeContex
 
     (*env)->CallVoidMethod(env, jFunc, nameSetter, jstr);
 
-    if(checkAndHandleException(env, "Error when setting function type context name.\n")) {
+    if(checkAndHandleException(env, "Error when setting function type context name")) {
         return NULL;
     }
 

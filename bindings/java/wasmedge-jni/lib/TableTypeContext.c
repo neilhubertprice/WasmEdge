@@ -23,12 +23,15 @@ JNIEXPORT void JNICALL Java_org_wasmedge_TableTypeContext_nativeInit
 
     jmethodID hasMaxMid = (*env)->GetMethodID(env, cls, "isHasMax", "()Z");
     jboolean hasMax = (*env)->CallBooleanMethod(env, jLimit, hasMaxMid);
+    checkException(env, "Error calling isHasMax()");
 
     jmethodID maxMid = (*env)->GetMethodID(env, cls, "getMax", "()J");
     jlong max = (*env)->CallLongMethod(env, jLimit, maxMid);
+    checkException(env, "Error calling getMax()");
 
     jmethodID minMid = (*env)->GetMethodID(env, cls, "getMin", "()J");
     jlong min = (*env)->CallLongMethod(env, jLimit, minMid);
+    checkException(env, "Error calling getMin()");
 
     WasmEdge_Limit  tableLimit = {.HasMax = hasMax, .Min = min, .Max = max};
     WasmEdge_TableTypeContext * tableTypeContext = WasmEdge_TableTypeCreate((enum WasmEdge_RefType) refType, tableLimit);

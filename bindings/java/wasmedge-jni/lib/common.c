@@ -140,6 +140,7 @@ long getLongVal(JNIEnv *env, jobject val) {
 
     jmethodID methodId = (*env)->GetMethodID(env, clazz, "getValue", "()J");
     jlong value = (*env)->CallLongMethod(env, val, methodId);
+    checkException(env, "Error calling getValue()");
     return value;
 }
 
@@ -147,6 +148,7 @@ long getFloatVal(JNIEnv *env, jobject val) {
     jclass clazz = (*env)->GetObjectClass(env, val);
     jmethodID methodId = findJavaMethod(env, clazz, "getValue", "()F");
     jfloat value = (*env)->CallFloatMethod(env, val, methodId);
+    checkException(env, "Error calling getValue()");
     return value;
 }
 
@@ -154,6 +156,7 @@ double getDoubleVal(JNIEnv *env, jobject val) {
     jclass clazz = (*env)->GetObjectClass(env, val);
     jmethodID methodId = findJavaMethod(env, clazz, "getValue", "()D");
     jdouble value = (*env)->CallDoubleMethod(env, val, methodId);
+    checkException(env, "Error calling getValue()");
     return value;
 }
 
@@ -163,6 +166,7 @@ char* getStringVal(JNIEnv *env, jobject val) {
     jmethodID methodId = findJavaMethod(env, clazz, "getValue", "()Ljava/lang/String;");
 
     jstring value = (jstring)(*env)->CallObjectMethod(env, val, methodId);
+    checkException(env, "Error calling getValue()");
 
     const char* c_str = (*env)->GetStringUTFChars(env, value, NULL);
     size_t len = (*env)->GetStringUTFLength(env, value);
@@ -179,10 +183,12 @@ WasmEdge_Value *parseJavaParams(JNIEnv *env, jobjectArray params, jintArray para
 
     WasmEdge_Value *wasm_params = calloc(paramSize, sizeof(WasmEdge_Value));
     int *type = (*env)->GetIntArrayElements(env, paramTypes, JNI_FALSE);
+    checkException(env, "Error getting param types");
     for (int i = 0; i < paramSize; i++) {
         WasmEdge_Value val;
 
         jobject val_object = (*env)->GetObjectArrayElement(env, params, i);
+        checkException(env, "Error getting param");
 
         switch (type[i]) {
 
@@ -225,11 +231,31 @@ enum WasmEdge_ValType *parseValueTypes(JNIEnv *env, jintArray jValueTypes) {
     jint len = (*env)->GetArrayLength(env, jValueTypes);
     enum WasmEdge_ValType* valTypes = malloc(len * sizeof(enum  WasmEdge_ValType));
     jint* elements = (*env)->GetIntArrayElements(env, jValueTypes, false);
+    checkException(env, "Error getting value types");
     for (int i = 0; i < len; ++i) {
         valTypes[i] = elements[i];
     }
     return valTypes;
 }
+
+bool checkException(JNIEnv *env, const char* msg) {
+    if((*env)->ExceptionCheck(env)) {
+        jthrowable e = (*env)->ExceptionOccurred(env);
+        (*env)->ExceptionClear(env);
+
+        jclass eclass = (*env)->GetObjectClass(env, e);
+
+        jmethodID mid = (*env)->GetMethodID(env, eclass, "toString", "()Ljava/lang/String;");
+        jstring jErrorMsg = (*env)->CallObjectMethod(env, e, mid);
+        const char* cMsg = (*env)->GetStringUTFChars(env, jErrorMsg, NULL);
+		fprintf(stderr, "%s: %s\n", msg, cMsg);
+        (*env)->ReleaseStringUTFChars(env, jErrorMsg, cMsg);
+
+        return true;
+    }
+    return false;
+}
+
 
 bool checkAndHandleException(JNIEnv *env, const char* msg) {
     if((*env)->ExceptionCheck(env)) {
@@ -241,9 +267,9 @@ bool checkAndHandleException(JNIEnv *env, const char* msg) {
         jmethodID mid = (*env)->GetMethodID(env, eclass, "toString", "()Ljava/lang/String;");
         jstring jErrorMsg = (*env)->CallObjectMethod(env, e, mid);
         const char* cMsg = (*env)->GetStringUTFChars(env, jErrorMsg, NULL);
-
-
+		fprintf(stderr, "%s: %s\n", msg, cMsg);
         (*env)->ReleaseStringUTFChars(env, jErrorMsg, cMsg);
+
         jclass newExcCls = (*env)->FindClass(env, "java/lang/RuntimeException");
         if (newExcCls == 0) { /* Unable to find the new exception class, give up. */
             return true;
@@ -295,11 +321,19 @@ jstring WasmEdgeStringToJString(JNIEnv* env, WasmEdge_String wStr) {
 jobject CreateJavaArrayList(JNIEnv* env, jint len) {
     jclass listClass = findJavaClass(env, "java/util/ArrayList");
 
+    if(checkAndHandleException(env, "Error looking up ArrayList class")) {
+        return NULL;
+    }
+
     if (listClass == NULL) {
         return NULL;
     }
 
     jmethodID listConstructor = findJavaMethod(env, listClass, "<init>", "(I)V");
+
+    if(checkAndHandleException(env, "Error looking up ArrayList constructor")) {
+        return NULL;
+    }
 
     if(listConstructor == NULL) {
         return NULL;
@@ -307,13 +341,14 @@ jobject CreateJavaArrayList(JNIEnv* env, jint len) {
 
     jobject jList = (*env)->NewObject(env, listClass, listConstructor, len);
 
+    if(checkAndHandleException(env, "Error when creating java list")) {
+        return NULL;
+    }
+
     if(jList == NULL) {
         return NULL;
     }
 
-    if(checkAndHandleException(env, "Error when creating java list\n")) {
-        return NULL;
-    }
     return jList;
 }
 
@@ -326,21 +361,25 @@ bool AddElementToJavaList(JNIEnv* env, jobject jList, jobject ele) {
 
     jmethodID addMethod = findJavaMethod(env, listClass, "add", "(Ljava/lang/Object;)Z");
 
-    return (*env)->CallBooleanMethod(env, jList, addMethod, ele);
+    jboolean retVal = (*env)->CallBooleanMethod(env, jList, addMethod, ele);
+    checkException(env, "Error calling add()");
+    return retVal;
 }
 
 jobject GetListElement(JNIEnv* env, jobject jList, jint idx) {
     jclass listClass = (*env)->GetObjectClass(env, jList);
     jmethodID getMethod = findJavaMethod(env, listClass, "get", "(I)Ljava/lang/Object;");
 
-    return (*env)->CallObjectMethod(env, jList, getMethod, idx);
+    jobject retVal = (*env)->CallObjectMethod(env, jList, getMethod, idx);
+    checkException(env, "Error calling get()");
+    return retVal;
 }
 
 jint GetListSize(JNIEnv* env, jobject jList) {
-
     jclass listClass = (*env)->GetObjectClass(env, jList);
     jmethodID sizeMethod = (*env)->GetMethodID(env, listClass, "size", "()I");
     jint size = (*env)->CallIntMethod(env, jList, sizeMethod);
+    checkException(env, "Error calling size()");
 
     return size;
 }
@@ -363,6 +402,7 @@ const char** JStringArrayToPtr(JNIEnv* env, jarray jStrArray) {
 
     for(int i = 0; i < len; i++) {
         jstring  jStr = (*env)->GetObjectArrayElement(env, jStrArray, i);
+        checkException(env, "Error getting string array");
         const char* strPtr = (*env)->GetStringUTFChars(env, jStr, NULL);
         ptr[i] = strPtr;
     }
@@ -374,6 +414,7 @@ void ReleaseCString(JNIEnv* env, jarray jStrArray, const char** ptr) {
 
     for(int i = 0; i < len; i++) {
         jstring jStr = (*env)->GetObjectArrayElement(env, jStrArray, i);
+        checkException(env, "Error getting object array");
         //TODO fixeme
         //(*env)->ReleaseStringUTFChars(env, jStr, ptr[i]);
     }

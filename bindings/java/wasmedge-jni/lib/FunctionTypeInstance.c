@@ -21,12 +21,24 @@ WasmEdge_Result HostFuncWrap(void *This, void* Data, WasmEdge_MemoryInstanceCont
 
     jclass clazz = (*env)->FindClass(env, "org/wasmedge/WasmEdgeVM");
     jmethodID funcGetter = (*env)->GetStaticMethodID(env, clazz, "getHostFunc", "(Ljava/lang/String;)Lorg/wasmedge/HostFunction;");
+    if(checkException(env, "Error looking up getHostFunc")) {
+        return WasmEdge_Result_Fail;
+    }
 
     jobject jFunc = (*env)->CallStaticObjectMethod(env, clazz, funcGetter, jFuncKey);
+    if(checkException(env, "Error calling getHostFunc")) {
+        return WasmEdge_Result_Fail;
+    }
 
     jclass jFuncClass = (*env)->GetObjectClass(env, jFunc);
+    if(checkException(env, "Error looking up HostFunc class")) {
+        return WasmEdge_Result_Fail;
+    }
 
     jmethodID funcMethod = (*env)->GetMethodID(env, jFuncClass, "apply", "(Lorg/wasmedge/MemoryInstanceContext;Ljava/util/List;Ljava/util/List;)Lorg/wasmedge/Result;");
+    if(checkException(env, "Error looking up apply method")) {
+        return WasmEdge_Result_Fail;
+    }
 
     jobject jMem = createJMemoryInstanceContext(env, Mem);
 
@@ -38,14 +50,58 @@ WasmEdge_Result HostFuncWrap(void *This, void* Data, WasmEdge_MemoryInstanceCont
 
     jobject jReturns = CreateJavaArrayList(env, OutLen);
 
-    (*env)->CallObjectMethod(env, jFunc, funcMethod, jMem, jParams, jReturns);
+    jobject result = (*env)->CallObjectMethod(env, jFunc, funcMethod, jMem, jParams, jReturns);
+    if(checkException(env, "Error calling HostFunction.apply()")) {
+        return WasmEdge_Result_Fail;
+    }
 
     for (int i = 0; i < OutLen; ++i) {
        Out[i] = JavaValueToWasmEdgeValue(env, GetListElement(env, jReturns, i));
     }
 
-    return WasmEdge_Result_Success;
 
+    jboolean isSuccess = true;
+    jboolean isTerminate = false;
+
+    if (result != NULL) {
+        jclass resultClass = (*env)->GetObjectClass(env, result);
+        if(checkException(env, "Error looking up Result class")) {
+            return WasmEdge_Result_Fail;
+        }
+	    if (resultClass != NULL) {
+            jmethodID resultSuccess = (*env)->GetMethodID(env, resultClass, "isSuccess", "()Z");
+            if(checkException(env, "Error looking up isSuccess method")) {
+                return WasmEdge_Result_Fail;
+            }
+            if (resultSuccess != NULL) {
+                isSuccess = (*env)->CallBooleanMethod(env, result, resultSuccess);
+                if(checkException(env, "Error calling isSuccess method")) {
+                    return WasmEdge_Result_Fail;
+                }
+
+                jmethodID resultTerminate = (*env)->GetMethodID(env, resultClass, "isTerminate", "()Z");
+                if(checkException(env, "Error looking up isTerminate method")) {
+                    return WasmEdge_Result_Fail;
+                }
+                if (resultTerminate != NULL) {
+                    isTerminate = (*env)->CallBooleanMethod(env, result, resultTerminate);
+                    if(checkException(env, "Error calling isTerminate method")) {
+                        return WasmEdge_Result_Fail;
+                    }
+                }
+            }
+        }
+    }
+
+    if (!isSuccess) {
+        return WasmEdge_Result_Fail;
+    }
+
+    if (isTerminate) {
+        return WasmEdge_Result_Terminate;
+    } else { 
+        return WasmEdge_Result_Success;
+    }
 }
 
 WasmEdge_FunctionInstanceContext * getFunctionInstanceContext(JNIEnv* env, jobject jFuncInstance) {

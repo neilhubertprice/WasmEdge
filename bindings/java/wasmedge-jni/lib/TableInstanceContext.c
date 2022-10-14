@@ -50,6 +50,7 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_TableInstanceContext_getData
     jmethodID typeGetter = (*env)->GetMethodID(env, typeClass, "getValue", "()I");
 
     jint valType = (*env)->CallIntMethod(env, jValType, typeGetter);
+    checkException(env, "Error calling getValue()");
 
     WasmEdge_Value val;
 

@@ -21,7 +21,7 @@ void setJavaIntValue(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
     jclass val_clazz = (*env)->GetObjectClass(env, jobj);
     jmethodID val_setter = (*env)->GetMethodID(env, val_clazz, "setValue", "(I)V");
     (*env)->CallIntMethod(env, jobj, val_setter, int_val);
-    checkAndHandleException(env, "Error set int value");
+    checkAndHandleException(env, "Error setting int value");
 }
 
 void setJavaLongValue(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
@@ -29,6 +29,7 @@ void setJavaLongValue(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
     jclass val_clazz = (*env)->GetObjectClass(env, jobj);
     jmethodID val_setter = (*env)->GetMethodID(env, val_clazz, "setValue", "(J)V");
     (*env)->CallLongMethod(env, jobj, val_setter, long_val);
+    checkAndHandleException(env, "Error setting long value");
 }
 
 void setJavaFloatValue(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
@@ -36,6 +37,7 @@ void setJavaFloatValue(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
     jclass val_clazz = (*env)->GetObjectClass(env, jobj);
     jmethodID val_setter = (*env)->GetMethodID(env, val_clazz, "setValue", "(F)V");
     (*env)->CallFloatMethod(env, jobj, val_setter, float_val);
+    checkAndHandleException(env, "Error setting float value");
 }
 
 void setJavaDoubleValue(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
@@ -43,6 +45,7 @@ void setJavaDoubleValue(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
     jclass val_clazz = (*env)->GetObjectClass(env, jobj);
     jmethodID val_setter = (*env)->GetMethodID(env, val_clazz, "setValue", "(D)V");
     (*env)->CallFloatMethod(env, jobj, val_setter, double_val);
+    checkAndHandleException(env, "Error setting double value");
 }
 
 void setJavaStringValue(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
@@ -53,6 +56,7 @@ void setJavaStringValue(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
 
     jstring jkey = (*env)->NewStringUTF(env, key);
     (*env)->CallObjectMethod(env, jobj, val_setter, jkey);
+    checkAndHandleException(env, "Error setting string value");
 }
 
 jobject createDoubleJavaLongValueObject(JNIEnv *env, WasmEdge_Value val) {
@@ -84,10 +88,12 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromFile
     /* The parameters and returns arrays. */
     WasmEdge_Value *wasm_params = calloc(param_size, sizeof(WasmEdge_Value));
     int *type = (*env)->GetIntArrayElements(env, param_types, JNI_FALSE);
+    checkException(env, "Error retrieving paramTypes");
     for (int i = 0; i < param_size; i++) {
         WasmEdge_Value val;
 
         jobject val_object = (*env)->GetObjectArrayElement(env, params, i);
+        checkException(env, "Error retrieving param");
 
         switch (type[i]) {
 
@@ -125,7 +131,9 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromFile
 
     if (WasmEdge_ResultOK(Res)) {
         for (int i = 0; i < return_size; ++i) {
-            setJavaValueObject(env, Returns[i], (*env)->GetObjectArrayElement(env, returns, i));
+            jobject jObj = (*env)->GetObjectArrayElement(env, returns, i);
+            checkException(env, "Error retrieving returned item");
+            setJavaValueObject(env, Returns[i], jObj);
         }
     } else {
         char exceptionBuffer[1024];
@@ -135,6 +143,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromFile
         (*env)->ThrowNew(env, (*env)->FindClass(env, "java/lang/Exception"),
                          exceptionBuffer);
     }
+
 
     /* Resources deallocations. */
     WasmEdge_StringDelete(FuncName);
@@ -181,7 +190,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_instantiate
 
 JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_execute
         (JNIEnv *env, jobject thisObject, jstring funcName, jobjectArray params, jint paramSize,
-         jintArray paramTypes, jobjectArray retuns, jint returnSize, jintArray returnTypes) {
+         jintArray paramTypes, jobjectArray returns, jint returnSize, jintArray returnTypes) {
 
     WasmEdge_VMContext *VMCxt = getVmContext(env, thisObject);
 
@@ -189,10 +198,12 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_execute
     /* The parameters and returns arrays. */
     WasmEdge_Value *wasm_params = calloc(paramSize, sizeof(WasmEdge_Value));
     int *type = (*env)->GetIntArrayElements(env, paramTypes, JNI_FALSE);
+    checkException(env, "Error retrieving paramTypes");
     for (int i = 0; i < paramSize; i++) {
         WasmEdge_Value val;
 
         jobject val_object = (*env)->GetObjectArrayElement(env, params, i);
+        checkException(env, "Error retrieving param");
 
         switch (type[i]) {
 
@@ -230,7 +241,9 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_execute
     handleWasmEdgeResult(env, &Res);
     if (WasmEdge_ResultOK(Res)) {
         for (int i = 0; i < returnSize; ++i) {
-            setJavaValueObject(env, Returns[i], (*env)->GetObjectArrayElement(env, retuns, i));
+            jobject jObj = (*env)->GetObjectArrayElement(env, returns, i);
+            checkException(env, "Error retrieving returned item");
+            setJavaValueObject(env, Returns[i], jObj);
         }
     }
 
@@ -310,6 +323,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_registerModuleFromBuffer
     WasmEdge_VMContext* vm = getVmContext(env, thisObject);
 
     jbyte* data = (*env)->GetByteArrayElements(env, jBuff, 0);
+    checkException(env, "Error retrieving byte array");
     jsize size = (*env)->GetArrayLength(env, jBuff);
 
     const char* modName = (*env)->GetStringUTFChars(env, jModName, NULL);
@@ -359,10 +373,12 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromBuffer
     /* The parameters and returns arrays. */
     WasmEdge_Value *wasm_params = calloc(paramLen, sizeof(WasmEdge_Value));
     int *type = (*env)->GetIntArrayElements(env, jParamTypes, JNI_FALSE);
+    checkException(env, "Error retrieving paramTypes");
     for (int i = 0; i < paramLen; i++) {
         WasmEdge_Value val;
 
         jobject val_object = (*env)->GetObjectArrayElement(env, jParams, i);
+        checkException(env, "Error retrieving param");
 
         switch (type[i]) {
 
@@ -392,7 +408,9 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromBuffer
 
     if (WasmEdge_ResultOK(result)) {
         for (int i = 0; i < returnLen; ++i) {
-            setJavaValueObject(env, returns[i], (*env)->GetObjectArrayElement(env, jReturns, i));
+            jobject jObj = (*env)->GetObjectArrayElement(env, jReturns, i);
+            checkException(env, "Error retrieving returned item");
+            setJavaValueObject(env, returns[i], jObj);
         }
     }
 
@@ -417,10 +435,12 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromASTModule
     /* The parameters and returns arrays. */
     WasmEdge_Value *wasm_params = calloc(paramLen, sizeof(WasmEdge_Value));
     int *type = (*env)->GetIntArrayElements(env, jParamTypes, JNI_FALSE);
+    checkException(env, "Error retrieving paramTypes");
     for (int i = 0; i < paramLen; i++) {
         WasmEdge_Value val;
 
         jobject val_object = (*env)->GetObjectArrayElement(env, jParams, i);
+        checkException(env, "Error retrieving param");
 
         switch (type[i]) {
 
@@ -450,7 +470,9 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromASTModule
 
     if (WasmEdge_ResultOK(result)) {
         for (int i = 0; i < returnLen; ++i) {
-            setJavaValueObject(env, returns[i], (*env)->GetObjectArrayElement(env, jReturns, i));
+            jobject jObj = (*env)->GetObjectArrayElement(env, jReturns, i);
+            checkException(env, "Error retrieving returned item");
+            setJavaValueObject(env, returns[i], jObj);
         }
     }
 
@@ -475,10 +497,12 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_executeRegistered
     /* The parameters and returns arrays. */
     WasmEdge_Value *wasm_params = calloc(paramLen, sizeof(WasmEdge_Value));
     int *type = (*env)->GetIntArrayElements(env, jParamTypes, JNI_FALSE);
+    checkException(env, "Error retrieving paramTypes");
     for (int i = 0; i < paramLen; i++) {
         WasmEdge_Value val;
 
         jobject val_object = (*env)->GetObjectArrayElement(env, jParams, i);
+        checkException(env, "Error retrieving param");
 
         switch (type[i]) {
 
@@ -508,7 +532,9 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_executeRegistered
 
     if (WasmEdge_ResultOK(result)) {
         for (int i = 0; i < returnLen; ++i) {
-            setJavaValueObject(env, returns[i], (*env)->GetObjectArrayElement(env, jReturns, i));
+            jobject jObj = (*env)->GetObjectArrayElement(env, jReturns, i);
+            checkException(env, "Error retrieving returned item");
+            setJavaValueObject(env, returns[i], jObj);
         }
     }
 

@@ -11,12 +11,14 @@ WasmEdge_Value JavaValueToWasmEdgeValue(JNIEnv *env, jobject jVal) {
     jmethodID getType = (*env)->GetMethodID(env, valueClass, "getType", "()Lorg/wasmedge/enums/ValueType;");
 
     jobject valType = (*env)->CallObjectMethod(env, jVal, getType);
+    checkException(env, "Error calling getType()");
 
     jclass typeClass = (*env)->GetObjectClass(env, valType);
 
     jmethodID getVal = (*env)->GetMethodID(env, typeClass, "getValue", "()I");
 
     jint jType = (*env)->CallIntMethod(env,valType, getVal);
+    checkException(env, "Error calling getValue()");
 
     enum WasmEdge_ValType type = (enum WasmEdge_ValType)jType;
 
