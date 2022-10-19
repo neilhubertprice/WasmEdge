@@ -129,6 +129,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromFile
     /* Run the WASM function from file. */
     WasmEdge_Result Res = WasmEdge_VMRunWasmFromFile(VMCxt, c_file_path, FuncName, wasm_params, param_size, Returns, return_size);
 
+    handleWasmEdgeResult(env, &Res);
     if (WasmEdge_ResultOK(Res)) {
         for (int i = 0; i < return_size; ++i) {
             jobject jObj = (*env)->GetObjectArrayElement(env, returns, i);
@@ -406,6 +407,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromBuffer
     //
     WasmEdge_Result result = WasmEdge_VMRunWasmFromBuffer(vmContext, buff, size, wFuncName, wasm_params, paramLen, returns, returnLen);
 
+    handleWasmEdgeResult(env, &result);
     if (WasmEdge_ResultOK(result)) {
         for (int i = 0; i < returnLen; ++i) {
             jobject jObj = (*env)->GetObjectArrayElement(env, jReturns, i);
@@ -417,7 +419,9 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromBuffer
     // release resources
     (*env)->ReleaseByteArrayElements(env, jBuff, buff, 0);
     (*env)->ReleaseStringUTFChars(env, jFuncName, funcName);
-
+    WasmEdge_StringDelete(wFuncName);
+    free(returns);
+    free(wasm_params);
 }
 
 
@@ -468,6 +472,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromASTModule
     //
     WasmEdge_Result result = WasmEdge_VMRunWasmFromASTModule(vmContext, mod, wFuncName, wasm_params, paramLen, returns, returnLen);
 
+    handleWasmEdgeResult(env, &result);
     if (WasmEdge_ResultOK(result)) {
         for (int i = 0; i < returnLen; ++i) {
             jobject jObj = (*env)->GetObjectArrayElement(env, jReturns, i);
@@ -478,7 +483,9 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromASTModule
 
     // release resources
     (*env)->ReleaseStringUTFChars(env, jFuncName, funcName);
-
+    WasmEdge_StringDelete(wFuncName);
+    free(returns);
+    free(wasm_params);
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_executeRegistered
@@ -530,6 +537,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_executeRegistered
     //
     WasmEdge_Result result = WasmEdge_VMExecuteRegistered(vmContext, wModName, wFuncName, wasm_params, paramLen, returns, returnLen);
 
+    handleWasmEdgeResult(env, &result);
     if (WasmEdge_ResultOK(result)) {
         for (int i = 0; i < returnLen; ++i) {
             jobject jObj = (*env)->GetObjectArrayElement(env, jReturns, i);
@@ -545,6 +553,8 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_executeRegistered
     (*env)->ReleaseStringUTFChars(env, jFuncName, funcName);
     WasmEdge_StringDelete(wModName);
     WasmEdge_StringDelete(wFuncName);
+    free(returns);
+    free(wasm_params);
 }
 
 JNIEXPORT jobject JNICALL Java_org_wasmedge_WasmEdgeVM_getStoreContext
