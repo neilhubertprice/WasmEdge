@@ -47,9 +47,9 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_listFunction
 
     uint32_t funcLen = WasmEdge_StoreListFunctionLength(storeCxt);
     WasmEdge_String* nameList = (WasmEdge_String*)malloc(sizeof (struct WasmEdge_String) * funcLen);
-    uint32_t RealFuncNum = WasmEdge_StoreListFunction(storeCxt, nameList, funcLen);
+    uint32_t realFuncNum = WasmEdge_StoreListFunction(storeCxt, nameList, funcLen);
 
-    jobject jNameList = WasmEdgeStringArrayToJavaList(env, nameList, RealFuncNum);
+    jobject jNameList = WasmEdgeStringArrayToJavaList(env, nameList, realFuncNum);
 
     free(nameList);
 
@@ -64,8 +64,9 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_findFunction
 
     WasmEdge_FunctionInstanceContext * funcInstance = WasmEdge_StoreFindFunction(storeCxt, wFuncName);
 
-    return createJFunctionInstanceContext(env, funcInstance);
+    WasmEdge_StringDelete(wFuncName);
 
+    return createJFunctionInstanceContext(env, funcInstance);
 }
 
 
@@ -74,16 +75,16 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_listFunctionRegistered
 
     WasmEdge_StoreContext *storeCxt = getStoreContext(env, thisObject);
 
-    const char* modName = (*env)->GetStringUTFChars(env, jModName, NULL);
-    WasmEdge_String wModName = WasmEdge_StringCreateByCString(modName);
+	WasmEdge_String wModName = JStringToWasmString(env, jModName);
 
     uint32_t funcLen = WasmEdge_StoreListFunctionRegisteredLength(storeCxt, wModName);
     WasmEdge_String* nameList = (WasmEdge_String*)malloc(sizeof (struct WasmEdge_String) * funcLen);
-    uint32_t RealFuncNum = WasmEdge_StoreListFunctionRegistered(storeCxt, wModName,nameList, funcLen);
+    uint32_t realFuncNum = WasmEdge_StoreListFunctionRegistered(storeCxt, wModName, nameList, funcLen);
 
-    jobject jNameList = WasmEdgeStringArrayToJavaList(env, nameList, RealFuncNum);
+    jobject jNameList = WasmEdgeStringArrayToJavaList(env, nameList, realFuncNum);
 
     free(nameList);
+    WasmEdge_StringDelete(wModName);
 
     return jNameList;
 }
@@ -111,9 +112,9 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_listTable
 
     uint32_t tabLen = WasmEdge_StoreListTableLength(storeCxt);
     WasmEdge_String* nameList = (WasmEdge_String*)malloc(sizeof (struct WasmEdge_String) * tabLen);
-    uint32_t RealTabNum = WasmEdge_StoreListTable(storeCxt, nameList, tabLen);
+    uint32_t realTabNum = WasmEdge_StoreListTable(storeCxt, nameList, tabLen);
 
-    jobject jNameList = WasmEdgeStringArrayToJavaList(env, nameList, RealTabNum);
+    jobject jNameList = WasmEdgeStringArrayToJavaList(env, nameList, realTabNum);
 
     free(nameList);
 
@@ -148,9 +149,9 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_findTableRegistered
     WasmEdge_TableInstanceContext * tabInst = WasmEdge_StoreFindTableRegistered(storeCxt, wModName, wTabName);
     jobject jTabInst = createJTableInstanceContext(env, tabInst);
 
-
     WasmEdge_StringDelete(wTabName);
     WasmEdge_StringDelete(wModName);
+
     return jTabInst;
 }
 
@@ -164,16 +165,16 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_listTableRegistered
 
     WasmEdge_StoreContext *storeCxt = getStoreContext(env, thisObject);
 
-    const char* modName = (*env)->GetStringUTFChars(env, jModName, NULL);
-    WasmEdge_String wModName = WasmEdge_StringCreateByCString(modName);
+    WasmEdge_String wModName = JStringToWasmString(env, jModName);
 
     uint32_t tabLen = WasmEdge_StoreListTableRegisteredLength(storeCxt, wModName);
     WasmEdge_String* nameList = (WasmEdge_String*)malloc(sizeof (struct WasmEdge_String) * tabLen);
-    uint32_t RealTabNum = WasmEdge_StoreListTableRegistered(storeCxt, wModName,nameList, tabLen);
+    uint32_t realTabNum = WasmEdge_StoreListTableRegistered(storeCxt, wModName, nameList, tabLen);
 
-    jobject jNameList = WasmEdgeStringArrayToJavaList(env, nameList, RealTabNum);
+    jobject jNameList = WasmEdgeStringArrayToJavaList(env, nameList, realTabNum);
 
     free(nameList);
+    WasmEdge_StringDelete(wModName);
 
     return jNameList;
 };
@@ -189,9 +190,9 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_listMemory
 
     uint32_t memLen = WasmEdge_StoreListMemoryLength(storeCxt);
     WasmEdge_String* nameList = (WasmEdge_String*)malloc(sizeof (struct WasmEdge_String) * memLen);
-    uint32_t RealMemNum = WasmEdge_StoreListMemory(storeCxt, nameList, memLen);
+    uint32_t realMemNum = WasmEdge_StoreListMemory(storeCxt, nameList, memLen);
 
-    jobject jNameList = WasmEdgeStringArrayToJavaList(env, nameList, RealMemNum);
+    jobject jNameList = WasmEdgeStringArrayToJavaList(env, nameList, realMemNum);
 
     free(nameList);
 
@@ -208,16 +209,16 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_listMemoryRegistered
 
     WasmEdge_StoreContext *storeCxt = getStoreContext(env, thisObject);
 
-    const char* modName = (*env)->GetStringUTFChars(env, jModName, NULL);
-    WasmEdge_String wModName = WasmEdge_StringCreateByCString(modName);
+    WasmEdge_String wModName = JStringToWasmString(env, jModName);
 
     uint32_t memLen = WasmEdge_StoreListMemoryRegisteredLength(storeCxt, wModName);
     WasmEdge_String* nameList = (WasmEdge_String*)malloc(sizeof (struct WasmEdge_String) * memLen);
-    uint32_t RealModNum = WasmEdge_StoreListMemoryRegistered(storeCxt, wModName,nameList, memLen);
+    uint32_t realModNum = WasmEdge_StoreListMemoryRegistered(storeCxt, wModName, nameList, memLen);
 
-    jobject jNameList = WasmEdgeStringArrayToJavaList(env, nameList, RealModNum);
+    jobject jNameList = WasmEdgeStringArrayToJavaList(env, nameList, realModNum);
 
     free(nameList);
+    WasmEdge_StringDelete(wModName);
 
     return jNameList;
 };
@@ -296,16 +297,16 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_listGlobalRegistered
 
     WasmEdge_StoreContext *storeCxt = getStoreContext(env, thisObject);
 
-    const char* modName = (*env)->GetStringUTFChars(env, jModName, NULL);
-    WasmEdge_String wModName = WasmEdge_StringCreateByCString(modName);
+    WasmEdge_String wModName = JStringToWasmString(env, jModName);
 
     uint32_t modLen = WasmEdge_StoreListGlobalRegisteredLength(storeCxt, wModName);
     WasmEdge_String* nameList = (WasmEdge_String*)malloc(sizeof (struct WasmEdge_String) * modLen);
-    uint32_t RealModNum = WasmEdge_StoreListGlobalRegistered(storeCxt, wModName,nameList, modLen);
+    uint32_t realModNum = WasmEdge_StoreListGlobalRegistered(storeCxt, wModName, nameList, modLen);
 
-    jobject jNameList = WasmEdgeStringArrayToJavaList(env, nameList, RealModNum);
+    jobject jNameList = WasmEdgeStringArrayToJavaList(env, nameList, realModNum);
 
     free(nameList);
+    WasmEdge_StringDelete(wModName);
 
     return jNameList;
 }
@@ -317,6 +318,9 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_findGlobal
     WasmEdge_String wGlobName = JStringToWasmString(env, jGlobName);
 
     WasmEdge_GlobalInstanceContext * globInst = WasmEdge_StoreFindGlobal(storeCxt, wGlobName);
+    
+    WasmEdge_StringDelete(wGlobName);
+
     return createJGlobalInstanceContext(env, globInst);
 }
 
@@ -347,9 +351,9 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_listModule
 
     uint32_t modLen = WasmEdge_StoreListModuleLength(storeCxt);
     WasmEdge_String* nameList = (WasmEdge_String*)malloc(sizeof (struct WasmEdge_String) * modLen);
-    uint32_t RealModNum = WasmEdge_StoreListModule(storeCxt, nameList, modLen);
+    uint32_t realModNum = WasmEdge_StoreListModule(storeCxt, nameList, modLen);
 
-    jobject jNameList = WasmEdgeStringArrayToJavaList(env, nameList, RealModNum);
+    jobject jNameList = WasmEdgeStringArrayToJavaList(env, nameList, realModNum);
 
     free(nameList);
 

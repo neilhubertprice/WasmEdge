@@ -76,13 +76,15 @@ WasmEdge_VMContext* getVmContext(JNIEnv* env, jobject vmContextObj) {
 
 
 JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromFile
-        (JNIEnv *env, jobject this_object, jstring file_path, jstring func_name,
+        (JNIEnv *env, jobject this_object, jstring file_path, jstring jFuncName,
          jobjectArray params, jint param_size, jintArray param_types, jobjectArray returns, jint return_size,
          jintArray return_types) {
 
 
     /* The configure and store context to the VM creation can be NULL. */
     WasmEdge_VMContext *VMCxt = getVmContext(env, this_object);
+
+    WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
 
 
     /* The parameters and returns arrays. */
@@ -115,19 +117,14 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromFile
         wasm_params[i] = val;
     }
 
-
-//    WasmEdge_Value* WasmRetuns = calloc(return_size, sizeof (WasmEdge_Value));
-//    /* Function name. */
-    const char *c_func_name = (*env)->GetStringUTFChars(env, func_name, NULL);
     const char *c_file_path = (*env)->GetStringUTFChars(env, file_path, NULL);
 
     /* The parameters and returns arrays. */
     //WasmEdge_Value Params[1] = { WasmEdge_ValueGenI32(5) };
     WasmEdge_Value *Returns = malloc(sizeof(WasmEdge_Value) * return_size);
-    /* Function name. */
-    WasmEdge_String FuncName = WasmEdge_StringCreateByCString(c_func_name);
+
     /* Run the WASM function from file. */
-    WasmEdge_Result Res = WasmEdge_VMRunWasmFromFile(VMCxt, c_file_path, FuncName, wasm_params, param_size, Returns, return_size);
+    WasmEdge_Result Res = WasmEdge_VMRunWasmFromFile(VMCxt, c_file_path, wFuncName, wasm_params, param_size, Returns, return_size);
 
     handleWasmEdgeResult(env, &Res);
     if (WasmEdge_ResultOK(Res)) {
@@ -147,8 +144,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromFile
 
 
     /* Resources deallocations. */
-    WasmEdge_StringDelete(FuncName);
-    (*env)->ReleaseStringUTFChars(env, func_name, c_func_name);
+    WasmEdge_StringDelete(wFuncName);
     (*env)->ReleaseStringUTFChars(env, file_path, c_file_path);
     free(wasm_params);
     free(Returns);
@@ -160,16 +156,15 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeInit
     WasmEdge_ConfigureContext* ConfigureContext = getConfigureContext(env, jConfigureContext);
     WasmEdge_StoreContext * StoreContext = getStoreContext(env, jStoreContext);
 
-
     WasmEdge_VMContext* VMContext = WasmEdge_VMCreate(ConfigureContext, StoreContext);
 
     setPointer(env, thisObject, (jlong)VMContext);
-
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_loadWasmFromFile
         (JNIEnv * env, jobject thisObject, jstring filePath) {
     const char *c_file_path = (*env)->GetStringUTFChars(env, filePath, NULL);
+    
     WasmEdge_Result res = WasmEdge_VMLoadWasmFromFile(getVmContext(env, thisObject), c_file_path);
     handleWasmEdgeResult(env, &res);
 
@@ -190,10 +185,12 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_instantiate
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_execute
-        (JNIEnv *env, jobject thisObject, jstring funcName, jobjectArray params, jint paramSize,
+        (JNIEnv *env, jobject thisObject, jstring jFuncName, jobjectArray params, jint paramSize,
          jintArray paramTypes, jobjectArray returns, jint returnSize, jintArray returnTypes) {
 
     WasmEdge_VMContext *VMCxt = getVmContext(env, thisObject);
+
+    WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
 
 
     /* The parameters and returns arrays. */
@@ -227,17 +224,11 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_execute
     }
 
 
-//    WasmEdge_Value* WasmRetuns = calloc(return_size, sizeof (WasmEdge_Value));
-//    /* Function name. */
-    const char *c_func_name = (*env)->GetStringUTFChars(env, funcName, NULL);
-
     /* The parameters and returns arrays. */
-    //WasmEdge_Value Params[1] = { WasmEdge_ValueGenI32(5) };
     WasmEdge_Value *Returns = malloc(sizeof(WasmEdge_Value) * returnSize);
-    /* Function name. */
-    WasmEdge_String FuncName = WasmEdge_StringCreateByCString(c_func_name);
+
     /* Run the WASM function from file. */
-    WasmEdge_Result Res = WasmEdge_VMExecute(VMCxt,  FuncName, wasm_params, paramSize, Returns, returnSize);
+    WasmEdge_Result Res = WasmEdge_VMExecute(VMCxt, wFuncName, wasm_params, paramSize, Returns, returnSize);
 
     handleWasmEdgeResult(env, &Res);
     if (WasmEdge_ResultOK(Res)) {
@@ -249,8 +240,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_execute
     }
 
     /* Resources deallocations. */
-    WasmEdge_StringDelete(FuncName);
-    (*env)->ReleaseStringUTFChars(env, funcName, c_func_name);
+    WasmEdge_StringDelete(wFuncName);
     free(wasm_params);
     free(Returns);
     return;
@@ -284,11 +274,9 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_WasmEdgeVM_getFunctionType
         (JNIEnv * env, jobject thisObject, jstring jFuncName) {
     WasmEdge_VMContext* vmContext = getVmContext(env, thisObject);
 
-    const char* funcName = (*env)->GetStringUTFChars(env, jFuncName, NULL);
-    WasmEdge_String wFuncName = WasmEdge_StringCreateByCString(funcName);
-    const WasmEdge_FunctionTypeContext* functionTypeContext = WasmEdge_VMGetFunctionType(vmContext, wFuncName);
+    WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
 
-    (*env)->ReleaseStringUTFChars(env, jFuncName, funcName);
+    const WasmEdge_FunctionTypeContext* functionTypeContext = WasmEdge_VMGetFunctionType(vmContext, wFuncName);
 
     if(functionTypeContext == NULL) {
         WasmEdge_StringDelete(wFuncName);
@@ -298,6 +286,7 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_WasmEdgeVM_getFunctionType
     jobject jFuncType = ConvertToJavaFunctionType(env, functionTypeContext, wFuncName);
 
     WasmEdge_StringDelete(wFuncName);
+
     return jFuncType;
 }
 
@@ -305,17 +294,17 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_registerModuleFromFile
         (JNIEnv * env, jobject thisObject, jstring jModName, jstring jFilePath) {
     WasmEdge_VMContext * vmContext = getVmContext(env, thisObject);
 
-    const char* modName = (*env)->GetStringUTFChars(env, jModName, NULL);
-    WasmEdge_String wModName = WasmEdge_StringCreateByCString(modName);
+
+    WasmEdge_String wModName = JStringToWasmString(env, jModName);
+
     const char* filePath = (*env)->GetStringUTFChars(env, jFilePath, NULL);
 
     WasmEdge_Result result = WasmEdge_VMRegisterModuleFromFile(vmContext, wModName, filePath);
-    (*env)->ReleaseStringUTFChars(env, jModName, modName);
+
     (*env)->ReleaseStringUTFChars(env, jFilePath, filePath);
     WasmEdge_StringDelete(wModName);
 
     handleWasmEdgeResult(env, &result);
-
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_registerModuleFromBuffer
@@ -327,32 +316,28 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_registerModuleFromBuffer
     checkException(env, "Error retrieving byte array");
     jsize size = (*env)->GetArrayLength(env, jBuff);
 
-    const char* modName = (*env)->GetStringUTFChars(env, jModName, NULL);
-
-    WasmEdge_String wModName = WasmEdge_StringCreateByCString(modName);
+    WasmEdge_String wModName = JStringToWasmString(env, jModName);
 
     WasmEdge_VMRegisterModuleFromBuffer(vm, wModName, data, size);
+    
     (*env)->ReleaseByteArrayElements(env, jBuff, data, 0);
-    (*env)->ReleaseStringUTFChars(env, jModName, modName);
     WasmEdge_StringDelete(wModName);
 }
 
 
 JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_registerModuleFromASTModule
         (JNIEnv * env, jobject thisObject, jstring jModName, jobject jAstModuleContext) {
-   WasmEdge_VMContext * vmContext = getVmContext(env, thisObject);
+    WasmEdge_VMContext * vmContext = getVmContext(env, thisObject);
 
-   WasmEdge_ASTModuleContext * mod = getASTModuleContext(env, jAstModuleContext);
+    WasmEdge_ASTModuleContext * mod = getASTModuleContext(env, jAstModuleContext);
+   
+    WasmEdge_String wModName = JStringToWasmString(env, jModName);
 
-   const char* modName = (*env)->GetStringUTFChars(env, jModName, NULL);
-   WasmEdge_String wModName = WasmEdge_StringCreateByCString(modName);
+    WasmEdge_Result result = WasmEdge_VMRegisterModuleFromASTModule(vmContext, wModName, mod);
 
-   WasmEdge_Result result = WasmEdge_VMRegisterModuleFromASTModule(vmContext, wModName, mod);
+    WasmEdge_StringDelete(wModName);
 
-   (*env)->ReleaseStringUTFChars(env, jModName, modName);
-   WasmEdge_StringDelete(wModName);
-
-   handleWasmEdgeResult(env, &result);
+    handleWasmEdgeResult(env, &result);
 }
 
 
@@ -364,9 +349,8 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromBuffer
 
     jbyte* buff = (*env)->GetByteArrayElements(env, jBuff, 0);
     jsize size = (*env)->GetArrayLength(env, jBuff);
-
-    const char* funcName = (*env)->GetStringUTFChars(env, jFuncName, NULL);
-    WasmEdge_String wFuncName = WasmEdge_StringCreateByCString(funcName);
+    
+    WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
 
     jsize paramLen = (*env)->GetArrayLength(env, jParams);
 
@@ -418,7 +402,6 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromBuffer
 
     // release resources
     (*env)->ReleaseByteArrayElements(env, jBuff, buff, 0);
-    (*env)->ReleaseStringUTFChars(env, jFuncName, funcName);
     WasmEdge_StringDelete(wFuncName);
     free(returns);
     free(wasm_params);
@@ -430,9 +413,8 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromASTModule
 
     WasmEdge_VMContext *vmContext = getVmContext(env, thisObject);
     WasmEdge_ASTModuleContext * mod = getASTModuleContext(env, jAstMod);
-
-    const char* funcName = (*env)->GetStringUTFChars(env, jFuncName, NULL);
-    WasmEdge_String wFuncName = WasmEdge_StringCreateByCString(funcName);
+    
+    WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
 
     jsize paramLen = (*env)->GetArrayLength(env, jParams);
 
@@ -482,7 +464,6 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromASTModule
     }
 
     // release resources
-    (*env)->ReleaseStringUTFChars(env, jFuncName, funcName);
     WasmEdge_StringDelete(wFuncName);
     free(returns);
     free(wasm_params);
@@ -492,12 +473,8 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_executeRegistered
         (JNIEnv * env, jobject thisObject, jstring jModName, jstring jFuncName, jobjectArray jParams, jintArray jParamTypes, jobjectArray jReturns, jintArray jReturnTypes) {
     WasmEdge_VMContext * vmContext = getVmContext(env, thisObject);
 
-    const char* modName = (*env)->GetStringUTFChars(env, jModName, NULL);
-    const char* funcName = (*env)->GetStringUTFChars(env, jFuncName, NULL);
-
-    //wasm string
-    WasmEdge_String wModName = WasmEdge_StringCreateByCString(modName);
-    WasmEdge_String wFuncName = WasmEdge_StringCreateByCString(funcName);
+    WasmEdge_String wModName = JStringToWasmString(env, jModName);
+    WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
 
     jsize paramLen = (*env)->GetArrayLength(env, jParams);
 
@@ -548,9 +525,6 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_executeRegistered
 
 
     //release resources
-
-    (*env)->ReleaseStringUTFChars(env, jModName, modName);
-    (*env)->ReleaseStringUTFChars(env, jFuncName, funcName);
     WasmEdge_StringDelete(wModName);
     WasmEdge_StringDelete(wFuncName);
     free(returns);

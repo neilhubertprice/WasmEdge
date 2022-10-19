@@ -384,17 +384,18 @@ jint GetListSize(JNIEnv* env, jobject jList) {
     return size;
 }
 
+// Call 'WasmEdge_StringDelete' on the returned string when no longer needed
 WasmEdge_String JStringToWasmString(JNIEnv* env, jstring jstr) {
-     uint32_t len = (*env)->GetStringUTFLength(env, jstr);
-     const char* strPtr = (*env)->GetStringUTFChars(env, jstr, NULL);
+    const char* strPtr = (*env)->GetStringUTFChars(env, jstr, NULL);
 
-    WasmEdge_String wStr = WasmEdge_StringCreateByBuffer(strPtr, len);
+    WasmEdge_String wStr = WasmEdge_StringCreateByCString(strPtr);
 
     (*env)->ReleaseStringUTFChars(env, jstr, strPtr);
 
     return wStr;
 }
 
+// All strings in the array need releasing with ReleaseStringUTFCHars
 const char** JStringArrayToPtr(JNIEnv* env, jarray jStrArray) {
     int len = (*env)->GetArrayLength(env, jStrArray);
 

@@ -125,8 +125,9 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_FunctionInstanceContext_getFunctionT
 JNIEXPORT void JNICALL Java_org_wasmedge_FunctionInstanceContext_nativeCreateFunction
         (JNIEnv *env, jobject thisObject, jobject jFuncType, jstring jHostFuncKey, jobject jData, jlong jCost) {
     WasmEdge_FunctionTypeContext* funcCxt = getFunctionTypeContext(env, jFuncType);
-    HostFuncParam * params = malloc(sizeof(struct HostFuncParam));
 
+	// TODO Where do params and funcKey get freed/released
+    HostFuncParam * params = malloc(sizeof(struct HostFuncParam));
     const char* funcKey = (*env)->GetStringUTFChars(env, jHostFuncKey, NULL);
     params->jFuncKey= funcKey;
     params->env = env;

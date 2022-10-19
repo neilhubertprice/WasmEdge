@@ -50,8 +50,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_invoke
     WasmEdge_ExecutorContext *exeCxt = getExecutorContext(env, thisObject);
     WasmEdge_StoreContext *storeCxt = getStoreContext(env, jStoreContext);
 
-    const char* funcName = (*env)->GetStringUTFChars(env, jFuncName, NULL);
-    WasmEdge_String wFuncName = WasmEdge_StringCreateByCString(funcName);
+    WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
 
     jsize paramLen = GetListSize(env, jParams);
 
@@ -67,11 +66,9 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_invoke
     WasmEdge_Result result = WasmEdge_ExecutorInvoke(exeCxt, storeCxt, wFuncName, wasm_params, paramLen, returns, returnLen);
 
     //release resource
-    (*env)->ReleaseStringUTFChars(env, jFuncName, funcName);
     WasmEdge_StringDelete(wFuncName);
 
     handleWasmEdgeResult(env, & result);
-
 
     if (WasmEdge_ResultOK(result)) {
         for (int i = 0; i < returnLen; ++i) {
@@ -89,22 +86,17 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_invoke
 JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_invokeRegistered
         (JNIEnv *env, jobject thisObject, jobject jStoreCxt, jstring jModName, jstring jFuncName, jobject jParams, jobject jReturns) {
 
-
     WasmEdge_ExecutorContext * exeCxt = getExecutorContext(env, thisObject);
     WasmEdge_StoreContext * storeCxt = getStoreContext(env, jStoreCxt);
 
-    const char* modName = (*env)->GetStringUTFChars(env, jModName, NULL);
-    const char* funcName = (*env)->GetStringUTFChars(env, jFuncName, NULL);
-
-    WasmEdge_String wModName = WasmEdge_StringCreateByCString(modName);
-    WasmEdge_String wFuncName = WasmEdge_StringCreateByCString(funcName);
+    WasmEdge_String wModName = JStringToWasmString(env, jModName);
+    WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
 
     jsize paramLen = GetListSize(env, jParams);
 
     /* The parameters and returns arrays. */
     WasmEdge_Value *wasm_params = calloc(paramLen, sizeof(WasmEdge_Value) * paramLen);
     for (int i = 0; i < paramLen; i++) {
-
         jobject val_object = GetListElement(env, jParams, i);
 
         wasm_params[i] = JavaValueToWasmEdgeValue(env, val_object);
@@ -117,8 +109,6 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_invokeRegistered
     WasmEdge_Result result = WasmEdge_ExecutorInvoke(exeCxt, storeCxt, wFuncName, wasm_params, paramLen, returns, returnLen);
 
     //release resource
-    (*env)->ReleaseStringUTFChars(env, jFuncName, funcName);
-    (*env)->ReleaseStringUTFChars(env, jModName, modName);
     WasmEdge_StringDelete(wFuncName);
     WasmEdge_StringDelete(wModName);
 
@@ -139,13 +129,10 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_registerModule
 
     WasmEdge_ASTModuleContext * astModCxt = getASTModuleContext(env, jAstModCxt);
 
-    const char* modName = (*env)->GetStringUTFChars(env, jModName, NULL);
-    WasmEdge_String wModName = WasmEdge_StringCreateByCString(modName);
+    WasmEdge_String wModName = JStringToWasmString(env, jModName);
 
     WasmEdge_Result result = WasmEdge_ExecutorRegisterModule(exeCxt, storeCxt, astModCxt, wModName);
 
-    // release resources
-    (*env)->ReleaseStringUTFChars(env, jModName, modName);
     WasmEdge_StringDelete(wModName);
 
     handleWasmEdgeResult(env, &result);

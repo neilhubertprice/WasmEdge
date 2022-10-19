@@ -69,8 +69,10 @@ jobject CreateJavaArrayList(JNIEnv* env, jint len);
 
 bool AddElementToJavaList(JNIEnv* env, jobject jList, jobject ele);
 
+// Call 'WasmEdge_StringDelete' on the returned string when no longer needed
 WasmEdge_String JStringToWasmString(JNIEnv* env, jstring jstr);
 
+// All strings in the array need releasing with ReleaseStringUTFCHars
 const char** JStringArrayToPtr(JNIEnv* env, jarray jStrArray);
 
 void ReleaseCString(JNIEnv* env, jarray jStrArray, const char** ptr);
