@@ -578,7 +578,7 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_WasmEdgeVM_getFunctionTypeRegistered
     WasmEdge_String wModName = JStringToWasmString(env, jModName);
     WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
 
-    const WasmEdge_FunctionTypeContext* functionTypeContext = WasmEdge_VMGetFunctionTypeRegistered(vmCxt,wModName, wModName);
+    const WasmEdge_FunctionTypeContext* functionTypeContext = WasmEdge_VMGetFunctionTypeRegistered(vmCxt, wModName, wFuncName);
 
     WasmEdge_StringDelete(wModName);
     WasmEdge_StringDelete(wFuncName);
