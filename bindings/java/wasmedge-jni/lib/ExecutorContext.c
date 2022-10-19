@@ -65,9 +65,6 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_invoke
 
     WasmEdge_Result result = WasmEdge_ExecutorInvoke(exeCxt, storeCxt, wFuncName, wasm_params, paramLen, returns, returnLen);
 
-    //release resource
-    WasmEdge_StringDelete(wFuncName);
-
     handleWasmEdgeResult(env, & result);
 
     if (WasmEdge_ResultOK(result)) {
@@ -76,6 +73,10 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_invoke
         }
     }
 
+    //release resource
+    free(wasm_params);
+    free(returns);
+    WasmEdge_StringDelete(wFuncName);
 }
 
 /*
@@ -95,30 +96,30 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_invokeRegistered
     jsize paramLen = GetListSize(env, jParams);
 
     /* The parameters and returns arrays. */
-    WasmEdge_Value *wasm_params = calloc(paramLen, sizeof(WasmEdge_Value) * paramLen);
+    WasmEdge_Value *wasm_params = calloc(paramLen, sizeof(WasmEdge_Value));
     for (int i = 0; i < paramLen; i++) {
         jobject val_object = GetListElement(env, jParams, i);
-
         wasm_params[i] = JavaValueToWasmEdgeValue(env, val_object);
     }
 
     jsize returnLen = GetListSize(env, jReturns);
     WasmEdge_Value *returns = malloc(sizeof(WasmEdge_Value) * returnLen);
 
-    //
     WasmEdge_Result result = WasmEdge_ExecutorInvoke(exeCxt, storeCxt, wFuncName, wasm_params, paramLen, returns, returnLen);
-
-    //release resource
-    WasmEdge_StringDelete(wFuncName);
-    WasmEdge_StringDelete(wModName);
 
     handleWasmEdgeResult(env, & result);
 
     if (WasmEdge_ResultOK(result)) {
         for (int i = 0; i < returnLen; ++i) {
-//            setJavaValueObject(env, returns[i], (*env)->GetObjectArrayElement(env, jReturns, i));
+            AddElementToJavaList(env, jReturns, WasmEdgeValueToJavaValue(env, returns[i]));
         }
     }
+
+    //release resource
+    free(wasm_params);
+    free(returns);
+    WasmEdge_StringDelete(wFuncName);
+    WasmEdge_StringDelete(wModName);
 
 }
 
@@ -133,10 +134,9 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_registerModule
 
     WasmEdge_Result result = WasmEdge_ExecutorRegisterModule(exeCxt, storeCxt, astModCxt, wModName);
 
-    WasmEdge_StringDelete(wModName);
-
     handleWasmEdgeResult(env, &result);
 
+    WasmEdge_StringDelete(wModName);
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_registerImport

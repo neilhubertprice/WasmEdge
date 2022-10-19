@@ -178,7 +178,7 @@ char* getStringVal(JNIEnv *env, jobject val) {
     return buf;
 }
 
-
+// The returned array needs freeing once no longer used
 WasmEdge_Value *parseJavaParams(JNIEnv *env, jobjectArray params, jintArray paramTypes, jint paramSize) {
 
     WasmEdge_Value *wasm_params = calloc(paramSize, sizeof(WasmEdge_Value));
@@ -221,6 +221,8 @@ WasmEdge_Value *parseJavaParams(JNIEnv *env, jobjectArray params, jintArray para
         }
         wasm_params[i] = val;
     }
+
+    return wasm_params;
 }
 
 enum WasmEdge_ValType *parseValueTypes(JNIEnv *env, jintArray jValueTypes) {
@@ -306,12 +308,10 @@ void setJavaValueObject(JNIEnv *env, WasmEdge_Value value, jobject j_val) {
 }
 
 
-
-
 jstring WasmEdgeStringToJString(JNIEnv* env, WasmEdge_String wStr) {
-     char buf[MAX_BUF_LEN];
-     memset(buf, 0, MAX_BUF_LEN);
-     WasmEdge_StringCopy(wStr, buf, MAX_BUF_LEN);
+    char buf[MAX_BUF_LEN];
+    memset(buf, 0, MAX_BUF_LEN);
+    WasmEdge_StringCopy(wStr, buf, MAX_BUF_LEN);
 
     jobject jStr = (*env)->NewStringUTF(env, buf);
 
