@@ -308,16 +308,6 @@ void setJavaValueObject(JNIEnv *env, WasmEdge_Value value, jobject j_val) {
 }
 
 
-jstring WasmEdgeStringToJString(JNIEnv* env, WasmEdge_String wStr) {
-    char buf[MAX_BUF_LEN];
-    memset(buf, 0, MAX_BUF_LEN);
-    WasmEdge_StringCopy(wStr, buf, MAX_BUF_LEN);
-
-    jobject jStr = (*env)->NewStringUTF(env, buf);
-
-    return jStr;
-}
-
 jobject CreateJavaArrayList(JNIEnv* env, jint len) {
     jclass listClass = findJavaClass(env, "java/util/ArrayList");
 
@@ -384,6 +374,27 @@ jint GetListSize(JNIEnv* env, jobject jList) {
     return size;
 }
 
+jstring WasmEdgeStringToJString(JNIEnv* env, WasmEdge_String wStr) {
+    char buf[MAX_BUF_LEN];
+    memset(buf, 0, MAX_BUF_LEN);
+    WasmEdge_StringCopy(wStr, buf, MAX_BUF_LEN);
+
+    jobject jStr = (*env)->NewStringUTF(env, buf);
+
+    return jStr;
+}
+
+// Call 'free' on the returned string when no longer needed
+const char *JStringToCString(JNIEnv *env, jstring jstr) {
+    const char *strPtr = (*env)->GetStringUTFChars(env, jstr, NULL);
+
+    const char *cStr = strdup(strPtr);
+
+    (*env)->ReleaseStringUTFChars(env, jstr, strPtr);
+
+    return cStr;
+}  
+
 // Call 'WasmEdge_StringDelete' on the returned string when no longer needed
 WasmEdge_String JStringToWasmString(JNIEnv* env, jstring jstr) {
     const char* strPtr = (*env)->GetStringUTFChars(env, jstr, NULL);
@@ -399,7 +410,7 @@ WasmEdge_String JStringToWasmString(JNIEnv* env, jstring jstr) {
 const char** JStringArrayToPtr(JNIEnv* env, jarray jStrArray) {
     int len = (*env)->GetArrayLength(env, jStrArray);
 
-    const char** ptr = malloc(sizeof(char*));
+    const char** ptr = malloc(sizeof(char*) * len);
 
     for(int i = 0; i < len; i++) {
         jstring  jStr = (*env)->GetObjectArrayElement(env, jStrArray, i);
@@ -410,6 +421,7 @@ const char** JStringArrayToPtr(JNIEnv* env, jarray jStrArray) {
     return ptr;
 }
 
+// Non-functional currently
 void ReleaseCString(JNIEnv* env, jarray jStrArray, const char** ptr) {
     int len = (*env)->GetArrayLength(env, jStrArray);
 

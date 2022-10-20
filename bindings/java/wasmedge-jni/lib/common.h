@@ -66,11 +66,14 @@ void setJavaValueObject(JNIEnv *env, WasmEdge_Value value, jobject j_val);
 
 jobject WasmEdgeStringArrayToJavaList(JNIEnv* env, WasmEdge_String* wStrList, int32_t len);
 
-jstring WasmEdgeStringToJString(JNIEnv* env, WasmEdge_String wStr);
-
 jobject CreateJavaArrayList(JNIEnv* env, jint len);
 
 bool AddElementToJavaList(JNIEnv* env, jobject jList, jobject ele);
+
+jstring WasmEdgeStringToJString(JNIEnv* env, WasmEdge_String wStr);
+
+// Call 'free' on the returned string when no longer needed
+const char *JStringToCString(JNIEnv *env, jstring jstr);
 
 // Call 'WasmEdge_StringDelete' on the returned string when no longer needed
 WasmEdge_String JStringToWasmString(JNIEnv* env, jstring jstr);
@@ -78,6 +81,7 @@ WasmEdge_String JStringToWasmString(JNIEnv* env, jstring jstr);
 // All strings in the array need releasing with ReleaseStringUTFCHars
 const char** JStringArrayToPtr(JNIEnv* env, jarray jStrArray);
 
+// Non-functional currently
 void ReleaseCString(JNIEnv* env, jarray jStrArray, const char** ptr);
 
 jobject GetListElement(JNIEnv* env, jobject jList, jint idx);

@@ -73,13 +73,12 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_initWasmEdgeProcess
     ReleaseCString(env, jAllowedCmds, allowedCmds);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_addFunction
-(JNIEnv * env, jobject thisObject, jstring jFuncName, jobject jFunc) {
+JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_nativeAddFunction
+(JNIEnv * env, jobject thisObject, jstring jFuncName, jlong funcPointer) {
     WasmEdge_ImportObjectContext * impObjCxt = getImportObjectContext(env, thisObject);
-    WasmEdge_FunctionInstanceContext *funcInst = getFunctionInstanceContext(env, jFunc);
+    WasmEdge_FunctionInstanceContext *funcInst = (WasmEdge_FunctionInstanceContext *)funcPointer;
 
     WasmEdge_ImportObjectAddFunction(impObjCxt, JStringToWasmString(env, jFuncName), funcInst);
-
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_addTable

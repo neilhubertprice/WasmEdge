@@ -13,8 +13,6 @@ typedef struct HostFuncParam {
 } HostFuncParam;
 
 
-WasmEdge_FunctionInstanceContext * getFunctionInstanceContext(JNIEnv* env, jobject jFuncInstance);
-
 jobject createJFunctionInstanceContext(JNIEnv* env, const WasmEdge_FunctionInstanceContext * funcInstance);
 
 uint32_t GetReturnLen(WasmEdge_FunctionInstanceContext* functionInstanceContext);

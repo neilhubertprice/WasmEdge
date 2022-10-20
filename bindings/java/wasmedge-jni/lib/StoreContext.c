@@ -56,17 +56,17 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_listFunction
     return jNameList;
 }
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_findFunction
+JNIEXPORT jlong JNICALL Java_org_wasmedge_StoreContext_nativeFindFunction
         (JNIEnv *env, jobject thisObject, jstring jFuncName) {
 
     WasmEdge_StoreContext *storeCxt = getStoreContext(env, thisObject);
     WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
 
-    WasmEdge_FunctionInstanceContext * funcInstance = WasmEdge_StoreFindFunction(storeCxt, wFuncName);
+    WasmEdge_FunctionInstanceContext *funcInstance = WasmEdge_StoreFindFunction(storeCxt, wFuncName);
 
     WasmEdge_StringDelete(wFuncName);
 
-    return createJFunctionInstanceContext(env, funcInstance);
+    return (jlong)funcInstance;
 }
 
 
