@@ -177,15 +177,29 @@ public class WasmEdgeVM {
     private native void executeRegistered(String modName, String funcName, WasmEdgeValue[] params,
                                           int[] paramTypes, WasmEdgeValue[] returns, int[] returnTypes);
 
-    private native void getFunctionList(List<FunctionTypeContext> functionList);
+    private native int nativeGetFunctionListLength();
+    private native int nativeGetFunctionList(long[] jPointersArray, Object[] jNamesArray, int bufferLen);
 
     public List<FunctionTypeContext> getFunctionList() {
-        List<FunctionTypeContext> funcList = new ArrayList<>();
-        getFunctionList(funcList);
+        final int funcListLen = nativeGetFunctionListLength();
+        final long[] jPointersArray = new long[funcListLen];
+        final String[] jNamesArray = new String[funcListLen];
+
+        final int actualFuncListLen = nativeGetFunctionList(jPointersArray, jNamesArray, funcListLen);
+
+        List<FunctionTypeContext> funcList = new ArrayList<>(actualFuncListLen);
+        for (int i = 0; i < actualFuncListLen; i++) {
+            funcList.add(new FunctionTypeContext(jPointersArray[i], jNamesArray[i]));
+        }
+
         return funcList;
     }
 
-    public native FunctionTypeContext getFunctionType(String funcName);
+    public FunctionTypeContext getFunctionType(String funcName) {
+        return new FunctionTypeContext(nativeGetFunctionType(funcName), funcName);
+    }
+
+    private native long nativeGetFunctionType(String funcName);
 
     public ImportObjectContext getImportModuleContext(HostRegistration reg) {
         return nativeGetImportModuleContext(reg.getVal());
@@ -198,8 +212,11 @@ public class WasmEdgeVM {
 
     public native StatisticsContext getStatisticsContext();
 
-    public native FunctionTypeContext getFunctionTypeRegistered(String moduleName,
-                                                                String funcName);
+    public FunctionTypeContext getFunctionTypeRegistered(String moduleName,  String funcName) {
+        return new FunctionTypeContext(nativeGetFunctionTypeRegistered(moduleName, funcName), funcName);
+    }
+
+    private native long nativeGetFunctionTypeRegistered(String moduleName, String funcName);
 
     public native void cleanUp();
 

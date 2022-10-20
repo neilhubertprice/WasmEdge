@@ -52,18 +52,12 @@ JNIEXPORT jint JNICALL Java_org_wasmedge_ExportTypeContext_nativeGetExternalType
     return type;
 }
 
-/*
- * Class:     org_wasmedge_ExportTypeContext
- * Method:    getFunctionType
- * Signature: ()Lorg/wasmedge/FunctionTypeContext;
- */
-JNIEXPORT jobject JNICALL Java_org_wasmedge_ExportTypeContext_nativeGetFunctionType
+JNIEXPORT jlong JNICALL Java_org_wasmedge_ExportTypeContext_nativeGetFunctionType
         (JNIEnv *env, jobject thisObject, jobject jAstCxt) {
     WasmEdge_ExportTypeContext  *expType = getExportTypeContext(env, thisObject);
     WasmEdge_ASTModuleContext  *astCxt = getASTModuleContext(env, jAstCxt);
-    const WasmEdge_FunctionTypeContext* functionTypeContext =  WasmEdge_ExportTypeGetFunctionType(astCxt, expType);
-    return createJFunctionTypeContext(env, functionTypeContext);
-
+    const WasmEdge_FunctionTypeContext *functionTypeContext =  WasmEdge_ExportTypeGetFunctionType(astCxt, expType);
+    return (jlong)functionTypeContext;
 }
 
 /*

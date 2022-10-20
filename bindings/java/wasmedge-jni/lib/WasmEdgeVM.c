@@ -192,42 +192,48 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_delete
     WasmEdge_VMDelete(getVmContext(env, thisObj));
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_getFunctionList
-        (JNIEnv *env , jobject thisObject, jobject jFuncList) {
 
+JNIEXPORT jint JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetFunctionListLength
+        (JNIEnv *env , jobject thisObject) {
     WasmEdge_VMContext* vmContext = getVmContext(env, thisObject);
 
-    uint32_t funcLen = WasmEdge_VMGetFunctionListLength(vmContext);
-    const WasmEdge_FunctionTypeContext** funcList = (const WasmEdge_FunctionTypeContext**)malloc(sizeof (WasmEdge_FunctionTypeContext *) * funcLen);
-    WasmEdge_String* nameList = (WasmEdge_String*)malloc(sizeof (struct WasmEdge_String) * funcLen);
-    uint32_t RealFuncNum = WasmEdge_VMGetFunctionList(vmContext, nameList, funcList, funcLen);
-
-    ConvertToJavaFunctionList(env, nameList, funcList, RealFuncNum, jFuncList);
-
-
-    free(funcList);
-    free(nameList);
-
+    return WasmEdge_VMGetFunctionListLength(vmContext);
 }
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_WasmEdgeVM_getFunctionType
-        (JNIEnv * env, jobject thisObject, jstring jFuncName) {
+JNIEXPORT jint JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetFunctionList
+        (JNIEnv *env , jobject thisObject, jlongArray jPointersArray, jobjectArray jNamesArray, jint bufferLen) {
     WasmEdge_VMContext* vmContext = getVmContext(env, thisObject);
+
+    const WasmEdge_FunctionTypeContext** funcList = (const WasmEdge_FunctionTypeContext**)malloc(sizeof (WasmEdge_FunctionTypeContext *) * bufferLen);
+    WasmEdge_String* nameList = (WasmEdge_String*)malloc(sizeof (struct WasmEdge_String) * bufferLen);
+    jint realFuncNum = WasmEdge_VMGetFunctionList(vmContext, nameList, funcList, bufferLen);
+
+    jlong *funcPointers = (*env)->GetLongArrayElements(env, jPointersArray, NULL);
+
+    for(int i = 0; i < realFuncNum; i++) {
+        funcPointers[i] = (jlong)funcList[i];
+        (*env)->SetObjectArrayElement(env, jNamesArray, i, WasmEdgeStringToJString(env, nameList[i]));
+    }
+
+    (*env)->ReleaseLongArrayElements(env, jPointersArray, funcPointers, 0);
+
+    free(nameList);
+    free(funcList);
+
+    return realFuncNum;
+}
+
+JNIEXPORT jlong JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetFunctionType
+        (JNIEnv * env, jobject thisObject, jstring jFuncName) {
+    WasmEdge_VMContext *vmContext = getVmContext(env, thisObject);
 
     WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
 
-    const WasmEdge_FunctionTypeContext* functionTypeContext = WasmEdge_VMGetFunctionType(vmContext, wFuncName);
-
-    if(functionTypeContext == NULL) {
-        WasmEdge_StringDelete(wFuncName);
-        return NULL;
-    }
-
-    jobject jFuncType = ConvertToJavaFunctionType(env, functionTypeContext, wFuncName);
+    const WasmEdge_FunctionTypeContext *functionTypeContext = WasmEdge_VMGetFunctionType(vmContext, wFuncName);
 
     WasmEdge_StringDelete(wFuncName);
 
-    return jFuncType;
+    return (jlong)functionTypeContext;
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_registerModuleFromFile
@@ -411,7 +417,7 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetImportModuleCont
 }
 
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_WasmEdgeVM_getFunctionTypeRegistered
+JNIEXPORT jlong JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetFunctionTypeRegistered
         (JNIEnv *env, jobject thisObject, jstring jModName, jstring jFuncName) {
     WasmEdge_VMContext * vmCxt = getVmContext(env, thisObject);
     WasmEdge_String wModName = JStringToWasmString(env, jModName);
@@ -422,7 +428,7 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_WasmEdgeVM_getFunctionTypeRegistered
     WasmEdge_StringDelete(wModName);
     WasmEdge_StringDelete(wFuncName);
 
-    return createJFunctionTypeContext(env, functionTypeContext);
+    return (jlong)functionTypeContext;
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_registerModuleFromImport

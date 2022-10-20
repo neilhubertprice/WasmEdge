@@ -98,7 +98,7 @@ public class BaseTest {
         ValueType[] params = new ValueType[] {ValueType.ExternRef, ValueType.i32};
         ValueType[] returns = new ValueType[] {ValueType.i32};
 
-        FunctionTypeContext functionTypeContext = new FunctionTypeContext(params, returns);
+        FunctionTypeContext functionTypeContext = new FunctionTypeContext(params, returns, name);
 
         FunctionInstanceContext hostFunc = new FunctionInstanceContext(functionTypeContext,
                 extAdd, null, 0);
@@ -118,7 +118,7 @@ public class BaseTest {
 
         functionTypeContext.delete();
 
-        functionTypeContext = new FunctionTypeContext(null, returns);
+        functionTypeContext = new FunctionTypeContext(null, returns, name);
 
         hostFunc = new FunctionInstanceContext(functionTypeContext, extTerm, null, 0);
         importObjectContext.addFunction("func-term", hostFunc);

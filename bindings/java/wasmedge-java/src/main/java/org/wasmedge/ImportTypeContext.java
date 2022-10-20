@@ -23,10 +23,10 @@ public class ImportTypeContext {
     private native int nativeGetExternalType();
 
     public FunctionTypeContext getFunctionType() {
-        return nativeGetFunctionType(astCtx);
+        return new FunctionTypeContext(nativeGetFunctionType(astCtx), null);
     }
 
-    private native FunctionTypeContext nativeGetFunctionType(ASTModuleContext astCtx);
+    private native long nativeGetFunctionType(ASTModuleContext astCtx);
 
     public TableTypeContext getTableType() {
         return nativeGetTableType(astCtx);

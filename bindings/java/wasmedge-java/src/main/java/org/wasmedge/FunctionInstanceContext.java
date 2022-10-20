@@ -3,33 +3,50 @@ package org.wasmedge;
 public class FunctionInstanceContext {
     private long pointer;
 
-    private FunctionInstanceContext(long pointer) {
+    public FunctionInstanceContext(final long pointer) {
         this.pointer = pointer;
+        validatePointer(pointer);
     }
 
-    public FunctionInstanceContext(FunctionTypeContext type,
-                                   HostFunction hostFunction, Object data,
-                                   long cost) {
-        String funcKey = WasmEdgeVM.addHostFunc(hostFunction);
-        nativeCreateFunction(type, funcKey, data, cost);
+    private void validatePointer(final long pointer) {
+        if (pointer == 0) {
+            throw new WasmEdgeException("Null FunctionInstance pointer");
+        }
     }
 
-
-    public FunctionInstanceContext(FunctionTypeContext type,
-                                   WrapFunction wrapFunction, Object binding,
-                                   Object data, long cost) {
-        nativeCreateBinding(type, wrapFunction, binding, data, cost);
+    public FunctionInstanceContext(final FunctionTypeContext type, final HostFunction hostFunction, final Object data,
+                                   final long cost) {
+        final String funcKey = WasmEdgeVM.addHostFunc(hostFunction);
+        this.pointer = nativeCreateFunction(type.getPointer(), funcKey, data, cost);
+        validatePointer(pointer);
     }
 
-    private native void nativeCreateFunction(FunctionTypeContext typeContext, String funcKey, Object data, long cost);
+    // Not currently implemented
+//    public FunctionInstanceContext(FunctionTypeContext type, WrapFunction wrapFunction, Object binding,
+//                                   Object data, long cost) {
+//        this.pointer = nativeCreateBinding(type, wrapFunction, binding, data, cost);
+//        validatePointer(pointer);
+//    }
 
-    private native void nativeCreateBinding(FunctionTypeContext typeContext,
-                                            WrapFunction wrapFunction,
-                                            Object binding,
-                                            Object data,
-                                            long cost);
+    private native long nativeCreateFunction(long funcTypePointer, String funcKey, Object data, long cost);
 
-    public native void delete();
+    // Not currently implemented
+//    private native long nativeCreateBinding(long funcTypePointer, WrapFunction wrapFunction, Object binding,
+//                                            Object data, long cost);
 
+    public void delete() {
+        nativeDelete(pointer);
+    }
 
+    private native void nativeDelete(long funcInstancePointer);
+
+    public FunctionTypeContext getFunctionType() {
+        return new FunctionTypeContext(nativeGetFunctionType(pointer), null);
+    }
+
+    public native long nativeGetFunctionType(long funcInstancePointer);
+
+    protected long getPointer() {
+        return pointer;
+    }
 }

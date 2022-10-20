@@ -27,9 +27,17 @@ public class StoreContext {
 
     public native List<String> listFunctionRegistered(String moduleName);
 
-    public native FunctionInstanceContext findFunction(String funcName);
+    public FunctionInstanceContext findFunction(String funcName) {
+        return new FunctionInstanceContext(nativeFindFunction(funcName));
+    }
 
-    public native FunctionInstanceContext findFunctionRegistered(String moduleName, String funcName);
+    private native long nativeFindFunction(String funcName);
+
+    public FunctionInstanceContext findFunctionRegistered(String moduleName, String funcName) {
+        return new FunctionInstanceContext(nativeFindFunctionRegistered(moduleName, funcName));
+    }
+
+    private native long nativeFindFunctionRegistered(String moduleName, String funcName);
 
     public native List<String> listTable();
 

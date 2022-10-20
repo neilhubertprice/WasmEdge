@@ -225,12 +225,21 @@ WasmEdge_Value *parseJavaParams(JNIEnv *env, jobjectArray params, jintArray para
     return wasm_params;
 }
 
+
 enum WasmEdge_ValType *parseValueTypes(JNIEnv *env, jintArray jValueTypes) {
     if(jValueTypes == NULL)  {
         return NULL;
     }
 
     jint len = (*env)->GetArrayLength(env, jValueTypes);
+    return parseValueTypesWithLen(env, jValueTypes, len);
+}
+
+enum WasmEdge_ValType *parseValueTypesWithLen(JNIEnv *env, jintArray jValueTypes, jint len) {
+    if(jValueTypes == NULL)  {
+        return NULL;
+    }
+
     enum WasmEdge_ValType* valTypes = malloc(len * sizeof(enum  WasmEdge_ValType));
     jint* elements = (*env)->GetIntArrayElements(env, jValueTypes, false);
     checkException(env, "Error getting value types");

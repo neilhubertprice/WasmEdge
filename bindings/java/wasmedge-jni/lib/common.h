@@ -57,6 +57,7 @@ void setJavaStringValue(JNIEnv *env, WasmEdge_Value val, jobject jobj);
 WasmEdge_Value *parseJavaParams(JNIEnv *env, jobjectArray params, jintArray paramTypes, jint paramSize);
 
 enum WasmEdge_ValType *parseValueTypes(JNIEnv *env, jintArray jValueTypes);
+enum WasmEdge_ValType *parseValueTypesWithLen(JNIEnv *env, jintArray jValueTypes, jint len);
 
 bool checkException(JNIEnv *env, const char* msg);
 

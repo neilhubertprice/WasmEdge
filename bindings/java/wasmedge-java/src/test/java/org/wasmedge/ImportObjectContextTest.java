@@ -29,7 +29,8 @@ public class ImportObjectContextTest extends BaseTest {
                 return new Result();
             }
         };
-        FunctionTypeContext addType = new FunctionTypeContext(new ValueType[] {ValueType.i32, ValueType.i32}, new ValueType[] {ValueType.i32});
+        FunctionTypeContext addType = new FunctionTypeContext(new ValueType[] {ValueType.i32, ValueType.i32},
+                new ValueType[] {ValueType.i32}, null);
 
         FunctionInstanceContext add = new FunctionInstanceContext(addType, addHostFunc, null, 0);
 

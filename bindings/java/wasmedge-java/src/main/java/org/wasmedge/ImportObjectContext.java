@@ -23,7 +23,11 @@ public class ImportObjectContext {
 
     public native void initWasmEdgeProcess(String[] allowedCmds, boolean allowAll);
 
-    public native void addFunction(String name, FunctionInstanceContext functionInstanceContext);
+    public void addFunction(String name, FunctionInstanceContext functionInstanceContext) {
+        nativeAddFunction(name, functionInstanceContext.getPointer());
+    }
+
+    private native void nativeAddFunction(String name, long funcInstancePointer);
 
     public native void addTable(String name, TableInstanceContext tableInstanceContext);
 

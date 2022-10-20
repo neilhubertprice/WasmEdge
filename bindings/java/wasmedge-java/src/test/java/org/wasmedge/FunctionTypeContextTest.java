@@ -24,7 +24,7 @@ public class FunctionTypeContextTest extends BaseTest {
         expectedReturns.add(ValueType.ExternRef);
         expectedReturns.add(ValueType.v128);
 
-        FunctionTypeContext functionTypeContext = new FunctionTypeContext(expectedParams, expectedReturns);
+        FunctionTypeContext functionTypeContext = new FunctionTypeContext(expectedParams, expectedReturns, null);
 
         List<ValueType> actualParams = functionTypeContext.getParameters();
         List<ValueType> actualReturns = functionTypeContext.getReturns();

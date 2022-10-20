@@ -104,16 +104,16 @@ WasmEdge_Result HostFuncWrap(void *This, void* Data, WasmEdge_MemoryInstanceCont
     }
 }
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_FunctionInstanceContext_nativeGetFunctionType
+JNIEXPORT jlong JNICALL Java_org_wasmedge_FunctionInstanceContext_nativeGetFunctionType
         (JNIEnv *env, jobject thisObject, jlong funcInstancePointer) {
     WasmEdge_FunctionInstanceContext *funcInstance = (WasmEdge_FunctionInstanceContext *)funcInstancePointer;
     const WasmEdge_FunctionTypeContext *funcType = WasmEdge_FunctionInstanceGetFunctionType(funcInstance);
-    return createJFunctionTypeContext(env, funcType);
+    return (jlong)funcType;
 }
 
 JNIEXPORT jlong JNICALL Java_org_wasmedge_FunctionInstanceContext_nativeCreateFunction
-        (JNIEnv *env, jobject thisObject, jobject jFuncType, jstring jHostFuncKey, jobject jData, jlong jCost) {
-    WasmEdge_FunctionTypeContext* funcCxt = getFunctionTypeContext(env, jFuncType);
+        (JNIEnv *env, jobject thisObject, jlong funcTypePointer, jstring jHostFuncKey, jobject jData, jlong jCost) {
+    WasmEdge_FunctionTypeContext *funcType = (WasmEdge_FunctionTypeContext *)funcTypePointer;
 
 	// TODO Where do params and funcKey get freed?  We have no control over this currently
     HostFuncParam *params = malloc(sizeof(struct HostFuncParam));
@@ -121,13 +121,13 @@ JNIEXPORT jlong JNICALL Java_org_wasmedge_FunctionInstanceContext_nativeCreateFu
     params->jFuncKey= funcKey;
     params->env = env;
  
-    WasmEdge_FunctionInstanceContext *funcInstance = WasmEdge_FunctionInstanceCreateBinding(funcCxt, HostFuncWrap, params, NULL, jCost);
+    WasmEdge_FunctionInstanceContext *funcInstance = WasmEdge_FunctionInstanceCreateBinding(funcType, HostFuncWrap, params, NULL, jCost);
 
     return (jlong)funcInstance;
 }
 
 // Not currently implemented
-// JNIEXPORT long JNICALL Java_org_wasmedge_FunctionInstanceContext_nativeCreateBinding
+// JNIEXPORT jlong JNICALL Java_org_wasmedge_FunctionInstanceContext_nativeCreateBinding
 //         (JNIEnv *env, jobject thisObject, jobject jWrapFuncType, jobject jWrapFunc, jobject jBinding, jobject jData, jlong jCost) {
 // }
 
@@ -139,21 +139,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_FunctionInstanceContext_nativeDelete(JN
     }
 }
 
-
-jobject createJFunctionInstanceContext(JNIEnv* env, const WasmEdge_FunctionInstanceContext * funcInstance) {
-
-    // FIXME add to all instances.
-    if(funcInstance == NULL) {
-        return NULL;
-    }
-
-    jclass clazz = (*env)->FindClass(env, "org/wasmedge/FunctionInstanceContext");
-    jmethodID constructorId = (*env)->GetMethodID(env, clazz, "<init>", "(J)V");
-    return (*env)->NewObject(env, clazz, constructorId, (long) funcInstance);
-}
-
-
 uint32_t GetReturnLen(WasmEdge_FunctionInstanceContext* functionInstanceContext) {
-    const WasmEdge_FunctionTypeContext * type = WasmEdge_FunctionInstanceGetFunctionType(functionInstanceContext);
+    const WasmEdge_FunctionTypeContext *type = WasmEdge_FunctionInstanceGetFunctionType(functionInstanceContext);
     return WasmEdge_FunctionTypeGetReturnsLength(type);
 }

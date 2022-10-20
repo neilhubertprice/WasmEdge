@@ -90,20 +90,19 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_listFunctionRegistered
 }
 
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_findFunctionRegistered
+JNIEXPORT jlong JNICALL Java_org_wasmedge_StoreContext_nativeFindFunctionRegistered
         (JNIEnv *env, jobject thisObject, jstring jModName, jstring jFuncName) {
     WasmEdge_StoreContext *storeCxt = getStoreContext(env, thisObject);
 
     WasmEdge_String wModName = JStringToWasmString(env, jModName);
     WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
 
-    const WasmEdge_FunctionInstanceContext * funcInst = WasmEdge_StoreFindFunctionRegistered(storeCxt, wModName, wFuncName);
-    jobject jFuncInst = createJFunctionInstanceContext(env, funcInst);
+    const WasmEdge_FunctionInstanceContext *funcInst = WasmEdge_StoreFindFunctionRegistered(storeCxt, wModName, wFuncName);
 
     WasmEdge_StringDelete(wFuncName);
     WasmEdge_StringDelete(wModName);
 
-    return jFuncInst;
+    return (long)funcInst;
 }
 
 JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_listTable
