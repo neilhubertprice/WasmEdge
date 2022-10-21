@@ -37,7 +37,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_MemoryInstanceContext_setData
 
     jbyte * buff = (*env)->GetByteArrayElements(env, jData, NULL);
 
-    WasmEdge_MemoryInstanceSetData(memoryInstanceContext, buff, jOffSet, jLength);
+    WasmEdge_MemoryInstanceSetData(memoryInstanceContext, (uint8_t *)buff, jOffSet, jLength);
 
     (*env)->ReleaseByteArrayElements(env, jData, buff, 0);
 }
@@ -54,7 +54,7 @@ JNIEXPORT jbyteArray JNICALL Java_org_wasmedge_MemoryInstanceContext_getData
     handleWasmEdgeResult(env, &result);
 
     jbyteArray jBytes = (*env)->NewByteArray(env, jSize);
-    (*env)->SetByteArrayRegion(env, jBytes,0, jSize, data);
+    (*env)->SetByteArrayRegion(env, jBytes, 0, jSize, (jbyte *)data);
 
     free(data);
     return jBytes;

@@ -22,6 +22,8 @@ WasmEdge_ExportTypeContext *getExportTypeContext(JNIEnv * env, jobject jExpType)
 
 JNIEXPORT jstring JNICALL Java_org_wasmedge_ExportTypeContext_getModuleName
         (JNIEnv *env, jobject thisObject) {
+    // TODO
+    return NULL;
 }
 
 /*

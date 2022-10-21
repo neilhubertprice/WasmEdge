@@ -60,6 +60,10 @@ jobject WasmEdgeValueToJavaValue(JNIEnv * env, WasmEdge_Value value) {
         case WasmEdge_ValType_F64:
             valClassName = "org/wasmedge/WasmEdgeF64Value";
             break;
+        case WasmEdge_ValType_V128:
+            // TODO
+            valClassName = NULL;
+            break;
         case WasmEdge_ValType_ExternRef:
             valClassName = "org/wasmedge/WasmEdgeExternRef";
             break;

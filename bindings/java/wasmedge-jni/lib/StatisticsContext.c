@@ -54,9 +54,9 @@ JNIEXPORT void JNICALL Java_org_wasmedge_StatisticsContext_setCostTable
     int len = (*env)->GetArrayLength(env, jCostTable);
 
     long* data = (*env)->GetLongArrayElements(env, jCostTable, NULL);
-    uint64_t* CostTable = malloc(sizeof (uint64_t) * len);
+    //uint64_t* CostTable = malloc(sizeof (uint64_t) * len);
 
-    WasmEdge_StatisticsSetCostTable(statCxt, data, len);
+    WasmEdge_StatisticsSetCostTable(statCxt, (uint64_t *)data, len);
 
     (*env)->ReleaseLongArrayElements(env, jCostTable, data, 0);
 }

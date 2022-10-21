@@ -262,7 +262,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_registerModuleFromBuffer
 
     WasmEdge_String wModName = JStringToWasmString(env, jModName);
 
-    WasmEdge_VMRegisterModuleFromBuffer(vm, wModName, data, size);
+    WasmEdge_VMRegisterModuleFromBuffer(vm, wModName, (uint8_t *)data, size);
     
     (*env)->ReleaseByteArrayElements(env, jBuff, data, 0);
     WasmEdge_StringDelete(wModName);
@@ -304,7 +304,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromBuffer
     jsize returnLen = (*env)->GetArrayLength(env, jReturns);
     WasmEdge_Value *returns = malloc(sizeof(WasmEdge_Value) * returnLen);
 
-    WasmEdge_Result result = WasmEdge_VMRunWasmFromBuffer(vmContext, buff, size, wFuncName, wasm_params, paramLen, returns, returnLen);
+    WasmEdge_Result result = WasmEdge_VMRunWasmFromBuffer(vmContext, (uint8_t *)buff, size, wFuncName, wasm_params, paramLen, returns, returnLen);
 
     handleWasmEdgeResult(env, &result);
     if (WasmEdge_ResultOK(result)) {
