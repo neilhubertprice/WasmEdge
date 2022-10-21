@@ -7,27 +7,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class FunctionTypeContext {
-    private long pointer;
+public class FunctionTypeContext extends AbstractWasmEdgeContext {
     private String name;
     List<ValueType> parameters = null;
     List<ValueType> returns = null;
 
     public FunctionTypeContext(final long pointer, final String name) {
-        this.pointer = pointer;
-        validatePointer(pointer);
+        super(pointer);
         this.name = name;
     }
 
-    private void validatePointer(final long pointer) {
-        if (pointer == 0) {
-            throw new WasmEdgeException("Null FunctionType pointer");
-        }
-    }
-
     public FunctionTypeContext(final List<ValueType> paramTypes, final List<ValueType> returnTypes, final String name) {
-        this.pointer = nativeInit(getTypeValues(paramTypes), getTypeValues(returnTypes));
-        validatePointer(pointer);
+        initialisePointer(nativeInit(getTypeValues(paramTypes), getTypeValues(returnTypes)));
         this.name = name;
         this.parameters = paramTypes;
         this.returns = returnTypes;
@@ -76,7 +67,8 @@ public class FunctionTypeContext {
 
     private native int[] nativeGetReturns(long funcTypePointer);
 
-    public void delete() {
+    @Override
+    protected void doDelete() {
         nativeDelete(pointer);
     }
 
@@ -96,9 +88,5 @@ public class FunctionTypeContext {
         WasmEdgeValue[] valuesArray = new WasmEdgeValue[values.size()];
         values.toArray(valuesArray);
         return valuesArray;
-    }
-
-    protected long getPointer() {
-        return pointer;
     }
 }

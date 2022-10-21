@@ -2,7 +2,6 @@
 // Created by Kenvi Zhu on 2021-12-19.
 //
 
-#include "../jni//org_wasmedge_LoaderContext.h"
 #include "wasmedge/wasmedge.h"
 #include "common.h"
 #include "ConfigureContext.h"
@@ -47,8 +46,8 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_LoaderContext_parseFromBuffer
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_LoaderContext_nativeInit
-        (JNIEnv * env, jobject thisObject, jobject jConfigContext) {
-   WasmEdge_ConfigureContext* configureContext = getConfigureContext(env, jConfigContext);
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer) {
+   WasmEdge_ConfigureContext *configureContext = (WasmEdge_ConfigureContext *)configContextPointer;
    WasmEdge_LoaderContext* loaderContext = WasmEdge_LoaderCreate(configureContext);
    setPointer(env, thisObject, (long)loaderContext);
 }

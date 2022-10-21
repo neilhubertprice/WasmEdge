@@ -122,8 +122,8 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromFile
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeInit
-        (JNIEnv * env, jobject thisObject, jobject jConfigureContext, jobject jStoreContext) {
-    WasmEdge_ConfigureContext* ConfigureContext = getConfigureContext(env, jConfigureContext);
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jobject jStoreContext) {
+    WasmEdge_ConfigureContext *ConfigureContext = (WasmEdge_ConfigureContext *)configContextPointer;
     WasmEdge_StoreContext * StoreContext = getStoreContext(env, jStoreContext);
 
     WasmEdge_VMContext* VMContext = WasmEdge_VMCreate(ConfigureContext, StoreContext);

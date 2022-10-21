@@ -1,24 +1,14 @@
 package org.wasmedge;
 
-public class FunctionInstanceContext {
-    private long pointer;
-
+public class FunctionInstanceContext extends AbstractWasmEdgeContext {
     public FunctionInstanceContext(final long pointer) {
-        this.pointer = pointer;
-        validatePointer(pointer);
-    }
-
-    private void validatePointer(final long pointer) {
-        if (pointer == 0) {
-            throw new WasmEdgeException("Null FunctionInstance pointer");
-        }
+        super(pointer);
     }
 
     public FunctionInstanceContext(final FunctionTypeContext type, final HostFunction hostFunction, final Object data,
                                    final long cost) {
         final String funcKey = WasmEdgeVM.addHostFunc(hostFunction);
-        this.pointer = nativeCreateFunction(type.getPointer(), funcKey, data, cost);
-        validatePointer(pointer);
+        initialisePointer(nativeCreateFunction(type.getPointer(), funcKey, data, cost));
     }
 
     // Not currently implemented
@@ -34,7 +24,8 @@ public class FunctionInstanceContext {
 //    private native long nativeCreateBinding(long funcTypePointer, WrapFunction wrapFunction, Object binding,
 //                                            Object data, long cost);
 
-    public void delete() {
+    @Override
+    protected void doDelete() {
         nativeDelete(pointer);
     }
 
@@ -45,8 +36,4 @@ public class FunctionInstanceContext {
     }
 
     public native long nativeGetFunctionType(long funcInstancePointer);
-
-    protected long getPointer() {
-        return pointer;
-    }
 }

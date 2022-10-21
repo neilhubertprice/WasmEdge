@@ -6,10 +6,10 @@ public class ExecutorContext {
     private long pointer;
 
     public ExecutorContext(ConfigureContext configureContext, StatisticsContext statisticsContext) {
-        nativeInit(configureContext, statisticsContext);
+        nativeInit(configureContext.getPointer(), statisticsContext);
     }
 
-    private native void nativeInit(ConfigureContext configureContext, StatisticsContext statisticsContext);
+    private native void nativeInit(long configureContextPointer, StatisticsContext statisticsContext);
 
 
     public native void instantiate(StoreContext storeContext, ASTModuleContext astModuleContext);

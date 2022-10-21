@@ -2,7 +2,6 @@
 // Created by Kenvi Zhu on 2022-01-10.
 //
 
-#include "../jni/org_wasmedge_ValidatorContext.h"
 #include "jni.h"
 #include "wasmedge/wasmedge.h"
 #include "common.h"
@@ -27,8 +26,8 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ValidatorContext_validate
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_ValidatorContext_nativeInit
-(JNIEnv * env, jobject thisObject, jobject jConfigCxt) {
-    WasmEdge_ConfigureContext * configureContext = getConfigureContext(env, jConfigCxt);
+(JNIEnv * env, jobject thisObject, jlong configContextPointer) {
+    WasmEdge_ConfigureContext *configureContext = (WasmEdge_ConfigureContext *)configContextPointer;
     WasmEdge_ValidatorContext * validatorContext = WasmEdge_ValidatorCreate(configureContext);
 
     setPointer(env, thisObject, (long)validatorContext);

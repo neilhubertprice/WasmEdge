@@ -2,7 +2,7 @@
 // Created by Kenvi Zhu on 2022-01-09.
 //
 #include <stdlib.h>
-#include "../jni/org_wasmedge_ExecutorContext.h"
+#include "jni.h"
 #include "wasmedge/wasmedge.h"
 #include "StatisticsContext.h"
 #include "ConfigureContext.h"
@@ -23,8 +23,8 @@ WasmEdge_ExecutorContext *getExecutorContext(JNIEnv * env, jobject jExeCtx) {
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_nativeInit
-        (JNIEnv * env, jobject thisObject, jobject jConfigContext, jobject jStatCxt) {
-    WasmEdge_ConfigureContext * confCxt = getConfigureContext(env, jConfigContext);
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jobject jStatCxt) {
+    WasmEdge_ConfigureContext *confCxt = (WasmEdge_ConfigureContext *)configContextPointer;
     WasmEdge_StatisticsContext * statCxt = getStatisticsContext(env, jStatCxt);
 
     WasmEdge_ExecutorContext * exeCxt = WasmEdge_ExecutorCreate(confCxt, statCxt);

@@ -2,139 +2,153 @@
 // Created by Kenvi Zhu on 2021-11-19.
 //
 
-#include "../jni/org_wasmedge_ConfigureContext.h"
 #include "common.h"
 #include "wasmedge/wasmedge.h"
 #include <stdint.h>
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_nativeInit
+JNIEXPORT jlong JNICALL Java_org_wasmedge_ConfigureContext_nativeInit
         (JNIEnv * env, jobject thisObj) {
     WasmEdge_ConfigureContext *ConfigureContext = WasmEdge_ConfigureCreate();
-    setPointer(env, thisObj, (jlong)ConfigureContext);
+    return (jlong)ConfigureContext;
 }
 
-WasmEdge_ConfigureContext* getConfigureContext(JNIEnv* env, jobject jConfigureContext) {
-    if (jConfigureContext == NULL) {
-        return NULL;
-    }
-    return (WasmEdge_ConfigureContext *)getPointer(env, jConfigureContext);
+JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_nativeDelete
+        (JNIEnv *env, jobject thisObj, jlong configContextPointer) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    WasmEdge_ConfigureDelete(configContext);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_delete
-        (JNIEnv *env, jobject thisObj) {
-    WasmEdge_ConfigureDelete(getConfigureContext(env, thisObj));
+JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_nativeAddProposal
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jint proposal) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    WasmEdge_ConfigureAddProposal(configContext, (enum WasmEdge_Proposal) proposal);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_addProposal
-        (JNIEnv * env, jobject thisObject, jint proposal) {
-    WasmEdge_ConfigureAddProposal(getConfigureContext(env, thisObject), (enum WasmEdge_Proposal) proposal);
+JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_nativeRemoveProposal
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jint proposal) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    WasmEdge_ConfigureRemoveProposal(configContext, (enum WasmEdge_Proposal) proposal);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_removeProposal
-        (JNIEnv * env, jobject thisObject, jint proposal) {
-    WasmEdge_ConfigureRemoveProposal(getConfigureContext(env, thisObject), (enum WasmEdge_Proposal) proposal);
+JNIEXPORT jboolean JNICALL Java_org_wasmedge_ConfigureContext_nativeHasProposal
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jint proposal) {
+     WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+   return WasmEdge_ConfigureHasProposal(configContext, (enum WasmEdge_Proposal) proposal);
 }
 
-JNIEXPORT jboolean JNICALL Java_org_wasmedge_ConfigureContext_hasProposal
-        (JNIEnv * env, jobject thisObject, jint proposal) {
-    return WasmEdge_ConfigureHasProposal(getConfigureContext(env, thisObject), (enum WasmEdge_Proposal) proposal);
-}
-
-JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_addHostRegistration
-        (JNIEnv * env, jobject thisObject, jint hostRegistration) {
-    WasmEdge_ConfigureAddHostRegistration(getConfigureContext(env, thisObject), (enum WasmEdge_HostRegistration) hostRegistration);
+JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_nativeAddHostRegistration
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jint hostRegistration) {
+     WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+   WasmEdge_ConfigureAddHostRegistration(configContext, (enum WasmEdge_HostRegistration) hostRegistration);
 }
 
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_removeHostRegistration
-        (JNIEnv * env, jobject thisObject, jint hostRegistration) {
-    WasmEdge_ConfigureRemoveHostRegistration(getConfigureContext(env, thisObject), (enum WasmEdge_HostRegistration) hostRegistration);
+JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_nativeRemoveHostRegistration
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jint hostRegistration) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    WasmEdge_ConfigureRemoveHostRegistration(configContext, (enum WasmEdge_HostRegistration) hostRegistration);
 }
 
-JNIEXPORT jboolean JNICALL Java_org_wasmedge_ConfigureContext_hasHostRegistration
-        (JNIEnv * env, jobject thisObject, jint hostRegistration) {
-   return WasmEdge_ConfigureHasHostRegistration(getConfigureContext(env, thisObject), (enum WasmEdge_HostRegistration) hostRegistration);
+JNIEXPORT jboolean JNICALL Java_org_wasmedge_ConfigureContext_nativeHasHostRegistration
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jint hostRegistration) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    return WasmEdge_ConfigureHasHostRegistration(configContext, (enum WasmEdge_HostRegistration) hostRegistration);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_setMaxMemoryPage
-        (JNIEnv * env, jobject thisObject, jlong maxPage) {
-    WasmEdge_ConfigureSetMaxMemoryPage(getConfigureContext(env, thisObject), (uint32_t)maxPage);
+JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_nativeSetMaxMemoryPage
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jlong maxPage) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    WasmEdge_ConfigureSetMaxMemoryPage(configContext, (uint32_t)maxPage);
 }
 
-JNIEXPORT jlong JNICALL Java_org_wasmedge_ConfigureContext_getMaxMemoryPage
-        (JNIEnv * env, jobject thisObject) {
-    return (jlong)WasmEdge_ConfigureGetMaxMemoryPage(getConfigureContext(env, thisObject));
+JNIEXPORT jlong JNICALL Java_org_wasmedge_ConfigureContext_nativeGetMaxMemoryPage
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    return (jlong)WasmEdge_ConfigureGetMaxMemoryPage(configContext);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_setCompilerOptimizationLevel
-        (JNIEnv * env, jobject thisObject, jint optimizationLevel) {
-    WasmEdge_ConfigureCompilerSetOptimizationLevel(getConfigureContext(env, thisObject),
+JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_nativeSetCompilerOptimizationLevel
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jint optimizationLevel) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    WasmEdge_ConfigureCompilerSetOptimizationLevel(configContext,
                                                    (enum WasmEdge_CompilerOptimizationLevel)optimizationLevel);
-
 }
 
 JNIEXPORT jint JNICALL Java_org_wasmedge_ConfigureContext_nativeGetCompilerOptimizationLevel
-        (JNIEnv * env, jobject thisObject) {
-    return (jint)WasmEdge_ConfigureCompilerGetOptimizationLevel(getConfigureContext(env, thisObject));
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    return (jint)WasmEdge_ConfigureCompilerGetOptimizationLevel(configContext);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_setCompilerOutputFormat
-        (JNIEnv * env, jobject thisObject, jint outputFormat) {
-    WasmEdge_ConfigureCompilerSetOutputFormat(getConfigureContext(env, thisObject),
+JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_nativeSetCompilerOutputFormat
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jint outputFormat) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    WasmEdge_ConfigureCompilerSetOutputFormat(configContext,
                                               (enum WasmEdge_CompilerOutputFormat) outputFormat);
 }
 
 JNIEXPORT jint JNICALL Java_org_wasmedge_ConfigureContext_nativeGetCompilerOutputFormat
-        (JNIEnv * env, jobject thisObject) {
-    return (jint)WasmEdge_ConfigureCompilerGetOutputFormat(getConfigureContext(env, thisObject));
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    return (jint)WasmEdge_ConfigureCompilerGetOutputFormat(configContext);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_setCompilerIsDumpIR
-        (JNIEnv * env, jobject thisObject, jboolean isDumpIR) {
-    WasmEdge_ConfigureCompilerSetDumpIR(getConfigureContext(env, thisObject), isDumpIR);
+JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_nativeSetCompilerIsDumpIR
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jboolean isDumpIR) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    WasmEdge_ConfigureCompilerSetDumpIR(configContext, isDumpIR);
 }
 
-JNIEXPORT jboolean JNICALL Java_org_wasmedge_ConfigureContext_getCompilerIsDumpIR
-        (JNIEnv * env, jobject thisObject) {
-    return WasmEdge_ConfigureCompilerIsDumpIR(getConfigureContext(env, thisObject));
+JNIEXPORT jboolean JNICALL Java_org_wasmedge_ConfigureContext_nativeGetCompilerIsDumpIR
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    return WasmEdge_ConfigureCompilerIsDumpIR(configContext);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_setCompilerIsGenericBinary
-        (JNIEnv * env, jobject thisObject, jboolean isGenericBinary) {
-    WasmEdge_ConfigureCompilerSetGenericBinary(getConfigureContext(env, thisObject), isGenericBinary);
+JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_nativeSetCompilerIsGenericBinary
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jboolean isGenericBinary) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    WasmEdge_ConfigureCompilerSetGenericBinary(configContext, isGenericBinary);
 }
 
-JNIEXPORT jboolean JNICALL Java_org_wasmedge_ConfigureContext_getCompilerIsGenericBinary
-        (JNIEnv * env, jobject thisObject) {
-    return WasmEdge_ConfigureCompilerIsGenericBinary(getConfigureContext(env, thisObject));
+JNIEXPORT jboolean JNICALL Java_org_wasmedge_ConfigureContext_nativeGetCompilerIsGenericBinary
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    return WasmEdge_ConfigureCompilerIsGenericBinary(configContext);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_setStatisticsSetInstructionCounting
-        (JNIEnv * env, jobject thisObject, jboolean instructionCounting) {
-    WasmEdge_ConfigureStatisticsSetInstructionCounting(getConfigureContext(env, thisObject), instructionCounting);
+JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_nativeSetStatisticsSetInstructionCounting
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jboolean instructionCounting) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    WasmEdge_ConfigureStatisticsSetInstructionCounting(configContext, instructionCounting);
 }
 
-JNIEXPORT jboolean JNICALL Java_org_wasmedge_ConfigureContext_isStatisticsSetInstructionCounting
-        (JNIEnv * env, jobject thisObject) {
-    return WasmEdge_ConfigureStatisticsIsInstructionCounting(getConfigureContext(env, thisObject));
+JNIEXPORT jboolean JNICALL Java_org_wasmedge_ConfigureContext_nativeIsStatisticsSetInstructionCounting
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    return WasmEdge_ConfigureStatisticsIsInstructionCounting(configContext);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_setStatisticsSetCostMeasuring
-        (JNIEnv * env, jobject thisObject, jboolean costMeasuring) {
-    WasmEdge_ConfigureStatisticsSetCostMeasuring(getConfigureContext(env, thisObject), costMeasuring);
+JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_nativeSetStatisticsSetCostMeasuring
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jboolean costMeasuring) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    WasmEdge_ConfigureStatisticsSetCostMeasuring(configContext, costMeasuring);
 }
 
-JNIEXPORT jboolean JNICALL Java_org_wasmedge_ConfigureContext_isStatisticsSetCostMeasuring
-        (JNIEnv * env, jobject thisObject) {
-    return WasmEdge_ConfigureStatisticsIsCostMeasuring(getConfigureContext(env, thisObject));
+JNIEXPORT jboolean JNICALL Java_org_wasmedge_ConfigureContext_nativeIsStatisticsSetCostMeasuring
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    return WasmEdge_ConfigureStatisticsIsCostMeasuring(configContext);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_setStatisticsSetTimeMeasuring
-        (JNIEnv * env, jobject thisObject, jboolean timeMeasuring) {
-    WasmEdge_ConfigureStatisticsSetTimeMeasuring(getConfigureContext(env, thisObject), timeMeasuring);
+JNIEXPORT void JNICALL Java_org_wasmedge_ConfigureContext_nativeSetStatisticsSetTimeMeasuring
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jboolean timeMeasuring) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    WasmEdge_ConfigureStatisticsSetTimeMeasuring(configContext, timeMeasuring);
 }
 
-JNIEXPORT jboolean JNICALL Java_org_wasmedge_ConfigureContext_isStatisticsSetTimeMeasuring
-        (JNIEnv * env, jobject thisObject) {
-    return WasmEdge_ConfigureStatisticsIsTimeMeasuring(getConfigureContext(env, thisObject));
+JNIEXPORT jboolean JNICALL Java_org_wasmedge_ConfigureContext_nativeIsStatisticsSetTimeMeasuring
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer) {
+    WasmEdge_ConfigureContext *configContext = (WasmEdge_ConfigureContext *)configContextPointer;
+    return WasmEdge_ConfigureStatisticsIsTimeMeasuring(configContext);
 }

@@ -19,8 +19,10 @@ public class WasmEdgeVM {
     public WasmEdgeVM(ConfigureContext configureContext, StoreContext storeContext) {
         this.configureContext = configureContext;
         this.storeContext = storeContext;
-        nativeInit(this.configureContext, this.storeContext);
+        nativeInit(configureContext.getPointer(), storeContext);
     }
+
+    private native void nativeInit(long configureContextPointer, StoreContext storeContext);
 
     protected static void addExternRef(String key, Object val) {
         externRefMap.put(key, val);
@@ -39,8 +41,6 @@ public class WasmEdgeVM {
     protected static HostFunction getHostFunc(String key) {
         return funcMap.get(key);
     }
-
-    private native void nativeInit(ConfigureContext configureContext, StoreContext storeContext);
 
     private native void runWasmFromFile(String file,
                                         String funcName,
@@ -143,10 +143,10 @@ public class WasmEdgeVM {
                                int returnSize,
                                int[] returnTypes);
 
-
+    // Also cleans up ConfigureContext & StoreContext
     public void destroy() {
         if (configureContext != null) {
-            configureContext.destroy();
+            configureContext.delete();
         }
 
         if (storeContext != null) {

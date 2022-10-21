@@ -1,7 +1,6 @@
 //
 // Created by Kenvi Zhu on 2021-12-16.
 //
-#include "../jni/org_wasmedge_CompilerContext.h"
 #include "wasmedge/wasmedge.h"
 #include "ConfigureContext.h"
 #include "common.h"
@@ -14,13 +13,12 @@ WasmEdge_CompilerContext * getCompilerContext(JNIEnv* env, jobject jCompilerCont
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_CompilerContext_nativeInit
-        (JNIEnv * env, jobject thisObject, jobject jConfigContext) {
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer) {
+    WasmEdge_ConfigureContext *configureContext = (WasmEdge_ConfigureContext *)configContextPointer;
 
-   WasmEdge_ConfigureContext* configureContext = getConfigureContext(env, jConfigContext);
+    WasmEdge_CompilerContext* compilerContext =  WasmEdge_CompilerCreate(configureContext);
 
-   WasmEdge_CompilerContext* compilerContext =  WasmEdge_CompilerCreate(configureContext);
-
-   setPointer(env, thisObject, (long)compilerContext);
+    setPointer(env, thisObject, (long)compilerContext);
 }
 
 

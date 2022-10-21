@@ -8,6 +8,4 @@
 #include "jni.h"
 #include "wasmedge/wasmedge.h"
 
-WasmEdge_ConfigureContext* getConfigureContext(JNIEnv* env, jobject jConfigureContext);
-
 #endif //WASMEDGE_JAVA_CONFIGURECONTEXT_H
