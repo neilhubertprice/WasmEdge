@@ -269,11 +269,10 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_registerModuleFromBuffer
 }
 
 
-JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_registerModuleFromASTModule
-        (JNIEnv * env, jobject thisObject, jstring jModName, jobject jAstModuleContext) {
+JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeRegisterModuleFromASTModule
+        (JNIEnv * env, jobject thisObject, jstring jModName, jlong astmContextPointer) {
     WasmEdge_VMContext * vmContext = getVmContext(env, thisObject);
-
-    WasmEdge_ASTModuleContext * mod = getASTModuleContext(env, jAstModuleContext);
+    WasmEdge_ASTModuleContext * mod = (WasmEdge_ASTModuleContext *)astmContextPointer;
    
     WasmEdge_String wModName = JStringToWasmString(env, jModName);
 
@@ -323,13 +322,11 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromBuffer
 }
 
 
-JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromASTModule
-        (JNIEnv * env, jobject thisObject, jobject jAstMod, jstring jFuncName,
-        jobjectArray jParams, jintArray jParamTypes, jobjectArray jReturns,
-        jintArray jReturnTypes) {
-
+JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeRunWasmFromASTModule
+        (JNIEnv * env, jobject thisObject, jlong astmContextPointer, jstring jFuncName,
+        jobjectArray jParams, jintArray jParamTypes, jobjectArray jReturns, jintArray jReturnTypes) {
     WasmEdge_VMContext *vmContext = getVmContext(env, thisObject);
-    WasmEdge_ASTModuleContext * mod = getASTModuleContext(env, jAstMod);
+    WasmEdge_ASTModuleContext *mod = (WasmEdge_ASTModuleContext *)astmContextPointer;
     
     WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
 

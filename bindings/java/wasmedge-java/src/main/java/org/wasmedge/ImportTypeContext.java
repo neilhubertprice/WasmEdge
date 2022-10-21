@@ -23,27 +23,27 @@ public class ImportTypeContext {
     private native int nativeGetExternalType();
 
     public FunctionTypeContext getFunctionType() {
-        return new FunctionTypeContext(nativeGetFunctionType(astCtx), null);
+        return new FunctionTypeContext(nativeGetFunctionType(astCtx.getPointer()), null);
     }
 
-    private native long nativeGetFunctionType(ASTModuleContext astCtx);
+    private native long nativeGetFunctionType(long astmContextPointer);
 
     public TableTypeContext getTableType() {
-        return nativeGetTableType(astCtx);
+        return nativeGetTableType(astCtx.getPointer());
     }
 
-    private native TableTypeContext nativeGetTableType(ASTModuleContext astCtx);
+    private native TableTypeContext nativeGetTableType(long astmContextPointer);
 
     public MemoryTypeContext getMemoryType() {
-        return nativeGetMemoryType(astCtx);
+        return nativeGetMemoryType(astCtx.getPointer());
     }
 
-    private native MemoryTypeContext nativeGetMemoryType(ASTModuleContext astCtx);
+    private native MemoryTypeContext nativeGetMemoryType(long astmContextPointer);
 
     public GlobalTypeContext getGlobalType() {
-        return nativeGetGlobalType(astCtx);
+        return nativeGetGlobalType(astCtx.getPointer());
     }
 
-    private native GlobalTypeContext nativeGetGlobalType(ASTModuleContext astCtx);
+    private native GlobalTypeContext nativeGetGlobalType(long astmContextPointer);
 
 }

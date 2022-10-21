@@ -2,19 +2,27 @@ package org.wasmedge;
 
 import java.util.List;
 
-public class ASTModuleContext {
-    private long pointer;
-
-    public ASTModuleContext() {
+public class ASTModuleContext extends AbstractWasmEdgeContext {
+    public ASTModuleContext(final long pointer) {
+        super(pointer);
     }
 
-    private ASTModuleContext(long pointer) {
-        this.pointer = pointer;
+    @Override
+    protected void doDelete() {
+        nativeDelete(pointer);
     }
 
-    public native List<ImportTypeContext> listImports();
+    private native void nativeDelete(long astmContextPointer);
 
-    public native List<ExportTypeContext> listExports();
+    public List<ImportTypeContext> listImports() {
+        return nativeListImports(pointer);
+    }
 
-    public native void delete();
+    private native List<ImportTypeContext> nativeListImports(long astmContextPointer);
+
+    public List<ExportTypeContext> listExports() {
+        return nativeListExports(pointer);
+    }
+
+    private native List<ExportTypeContext> nativeListExports(long astmContextPointer);
 }

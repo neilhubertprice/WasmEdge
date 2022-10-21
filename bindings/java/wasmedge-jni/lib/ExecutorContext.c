@@ -32,10 +32,10 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_nativeInit
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_nativeInstantiate
-        (JNIEnv * env, jobject thisObject, jlong storeContextPointer, jobject jAstModCxt) {
+        (JNIEnv * env, jobject thisObject, jlong storeContextPointer, jlong astmContextPointer) {
     WasmEdge_ExecutorContext * exeCxt = getExecutorContext(env, thisObject);
     WasmEdge_StoreContext *storeCxt = (WasmEdge_StoreContext *)storeContextPointer;
-    WasmEdge_ASTModuleContext * astModCxt = getASTModuleContext(env, jAstModCxt);
+    WasmEdge_ASTModuleContext *astModCxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
 
     WasmEdge_ExecutorInstantiate(exeCxt, storeCxt, astModCxt);
 }
@@ -113,11 +113,10 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_nativeInvokeRegistered
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_nativeRegisterModule
-        (JNIEnv * env, jobject thisObject, jlong storeContextPointer, jobject jAstModCxt, jstring jModName) {
+        (JNIEnv * env, jobject thisObject, jlong storeContextPointer, jlong astmContextPointer, jstring jModName) {
     WasmEdge_ExecutorContext *exeCxt = getExecutorContext(env, thisObject);
     WasmEdge_StoreContext *storeCxt = (WasmEdge_StoreContext *)storeContextPointer;
-
-    WasmEdge_ASTModuleContext * astModCxt = getASTModuleContext(env, jAstModCxt);
+    WasmEdge_ASTModuleContext * astModCxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
 
     WasmEdge_String wModName = JStringToWasmString(env, jModName);
 

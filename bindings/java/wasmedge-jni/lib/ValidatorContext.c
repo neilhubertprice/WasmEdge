@@ -16,10 +16,10 @@ WasmEdge_ValidatorContext * getValidatorContext(JNIEnv* env, jobject thisObject)
 }
 
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ValidatorContext_validate
-(JNIEnv * env, jobject thisObject, jobject jAstModCxt) {
+JNIEXPORT void JNICALL Java_org_wasmedge_ValidatorContext_nativeValidate
+        (JNIEnv * env, jobject thisObject, jlong astmContextPointer) {
    WasmEdge_ValidatorContext * validatorContext = getValidatorContext(env, thisObject);
-   WasmEdge_ASTModuleContext * astModCxt = getASTModuleContext(env, jAstModCxt);
+   WasmEdge_ASTModuleContext * astModCxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
 
    WasmEdge_Result result = WasmEdge_ValidatorValidate(validatorContext, astModCxt);
    handleWasmEdgeResult(env, &result);

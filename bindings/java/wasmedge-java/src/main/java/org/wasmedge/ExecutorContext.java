@@ -12,10 +12,10 @@ public class ExecutorContext {
     private native void nativeInit(long configureContextPointer, long statContextPointer);
 
     public void instantiate(StoreContext storeContext, ASTModuleContext astModuleContext) {
-        nativeInstantiate(storeContext.getPointer(), astModuleContext);
+        nativeInstantiate(storeContext.getPointer(), astModuleContext.getPointer());
     }
 
-    private native void nativeInstantiate(long storeContextPointer, ASTModuleContext astModuleContext);
+    private native void nativeInstantiate(long storeContextPointer, long astmContextPointer);
 
     public void invoke(StoreContext storeContext, String funcName,
                               List<WasmEdgeValue> params, List<WasmEdgeValue> returns) {
@@ -51,10 +51,10 @@ public class ExecutorContext {
                                         List<WasmEdgeValue> params, List<WasmEdgeValue> returns);
 
     public void registerModule(StoreContext storeCxt, ASTModuleContext astCxt, String moduleName) {
-        nativeRegisterModule(storeCxt.getPointer(), astCxt, moduleName);
+        nativeRegisterModule(storeCxt.getPointer(), astCxt.getPointer(), moduleName);
     }
 
-    private native void nativeRegisterModule(long storeContextPointer, ASTModuleContext astCxt, String moduleName);
+    private native void nativeRegisterModule(long storeContextPointer, long astmContextPointer, String moduleName);
 
     public void registerImport(StoreContext storeCxt, ImportObjectContext importObjectContext) {
         nativeRegisterImport(storeCxt.getPointer(), importObjectContext);

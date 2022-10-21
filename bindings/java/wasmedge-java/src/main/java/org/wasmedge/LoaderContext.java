@@ -9,9 +9,17 @@ public class LoaderContext {
 
     private native void nativeInit(long configureContextPointer);
 
-    public native ASTModuleContext parseFromFile(String path);
+    public ASTModuleContext parseFromFile(String path) {
+        return new ASTModuleContext(nativeParseFromFile(path));
+    }
 
-    public native ASTModuleContext parseFromBuffer(byte[] buf, int bufSize);
+    private native long nativeParseFromFile(String path);
+
+    public ASTModuleContext parseFromBuffer(byte[] buf, int bufSize) {
+        return new ASTModuleContext(nativeParseFromBuffer(buf, bufSize));
+    }
+
+    private native long nativeParseFromBuffer(byte[] buf, int bufSize);
 
     public native void delete();
 }

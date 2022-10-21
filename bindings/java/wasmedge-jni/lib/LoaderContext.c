@@ -11,13 +11,13 @@ WasmEdge_LoaderContext * getLoader(JNIEnv *env, jobject jLoader) {
     return (WasmEdge_LoaderContext*)getPointer(env, jLoader);
 }
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_LoaderContext_parseFromFile
+JNIEXPORT jlong JNICALL Java_org_wasmedge_LoaderContext_nativeParseFromFile
         (JNIEnv * env, jobject thisObject, jstring jInputPath) {
     WasmEdge_LoaderContext *loader = getLoader(env, thisObject);
 
-    const char* inputPath = (*env)->GetStringUTFChars(env, jInputPath, NULL);
+    const char *inputPath = (*env)->GetStringUTFChars(env, jInputPath, NULL);
 
-    WasmEdge_ASTModuleContext* mod = NULL;
+    WasmEdge_ASTModuleContext *mod = NULL;
 
     WasmEdge_Result result = WasmEdge_LoaderParseFromFile(loader, &mod, inputPath);
     (*env)->ReleaseStringUTFChars(env, jInputPath, inputPath);
@@ -27,22 +27,22 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_LoaderContext_parseFromFile
         return NULL;
     }
 
-    return createAstModuleContext(env, mod);
+    return (jlong)mod;
 }
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_LoaderContext_parseFromBuffer
+JNIEXPORT jlong JNICALL Java_org_wasmedge_LoaderContext_nativeParseFromBuffer
         (JNIEnv * env, jobject thisObject, jbyteArray jBuf, jint jSize) {
     WasmEdge_LoaderContext *loader = getLoader(env, thisObject);
 
-    WasmEdge_ASTModuleContext* mod = NULL;
+    WasmEdge_ASTModuleContext *mod = NULL;
 
-    jbyte* data = (*env)->GetByteArrayElements(env, jBuf, 0);
+    jbyte *data = (*env)->GetByteArrayElements(env, jBuf, NULL);
 
     WasmEdge_LoaderParseFromBuffer(loader, &mod, (uint8_t*)data, jSize);
 
     (*env)->ReleaseByteArrayElements(env, jBuf, data, 0);
 
-    return createAstModuleContext(env, mod);
+    return (jlong)mod;
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_LoaderContext_nativeInit

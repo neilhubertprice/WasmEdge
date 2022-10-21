@@ -7,7 +7,11 @@ public class ValidatorContext {
         nativeInit(configureContext.getPointer());
     }
 
-    public native void validate(ASTModuleContext astCtx);
+    public void validate(ASTModuleContext astCtx) {
+        nativeValidate(astCtx.getPointer());
+    }
+
+    private native void nativeValidate(long astmContextPointer);
 
     private native void nativeInit(long configureContextPointer);
 

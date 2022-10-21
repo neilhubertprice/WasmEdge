@@ -84,14 +84,13 @@ public class WasmEdgeVM {
         WasmEdgeValue[] returnsArray = valueListToArray(returns);
         int[] returnTypes = getValueTypeArray(returns);
 
-        runWasmFromASTModule(astModuleContext, funcName, paramsArray, paramTypes, returnsArray, returnTypes);
+        nativeRunWasmFromASTModule(astModuleContext.getPointer(), funcName, paramsArray, paramTypes, returnsArray, returnTypes);
     }
 
-    private native void runWasmFromASTModule(ASTModuleContext astModuleContext, String funcName, WasmEdgeValue[] params, int[] paramTypes, WasmEdgeValue[] returns, int[] returnTypes);
-
+    private native void nativeRunWasmFromASTModule(long astmContextPointer, String funcName, WasmEdgeValue[] params, int[] paramTypes,
+                                                   WasmEdgeValue[] returns, int[] returnTypes);
 
     private int[] getValueTypeArray(List<WasmEdgeValue> values) {
-
         int[] types = new int[values.size()];
 
         for (int i = 0; i < values.size(); i++) {
@@ -108,9 +107,10 @@ public class WasmEdgeVM {
 
     public native void loadWasmFromFile(String filePath);
 
-    public native void loadWasmFromBuffer(byte[] buffer);
-
-    public native void loadWasmFromASTModule(ASTModuleContext astModuleContext);
+    // Not yet implemented in the JNI layer
+//    public native void loadWasmFromBuffer(byte[] buffer);
+//
+//    public native void loadWasmFromASTModule(ASTModuleContext astModuleContext);
 
     public native void validate();
 
@@ -148,7 +148,11 @@ public class WasmEdgeVM {
 
     public native void registerModuleFromImport(ImportObjectContext importObjectContext);
 
-    public native void registerModuleFromASTModule(String moduleName, ASTModuleContext astModuleContext);
+    public void registerModuleFromASTModule(String moduleName, ASTModuleContext astModuleContext) {
+        nativeRegisterModuleFromASTModule(moduleName, astModuleContext.getPointer());
+    }
+
+    private native void nativeRegisterModuleFromASTModule(String moduleName, long astmContextPointer);
 
     public void executeRegistered(String modName, String funcName, List<WasmEdgeValue> params,
                                   List<WasmEdgeValue> returns) {
