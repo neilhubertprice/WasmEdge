@@ -200,7 +200,11 @@ public class WasmEdgeVM {
 
     private native long nativeGetStoreContext();
 
-    public native StatisticsContext getStatisticsContext();
+    public StatisticsContext getStatisticsContext() {
+        return new StatisticsContext(nativeGetStatisticsContext());
+    }
+
+    private native long nativeGetStatisticsContext();
 
     public FunctionTypeContext getFunctionTypeRegistered(String moduleName,  String funcName) {
         return new FunctionTypeContext(nativeGetFunctionTypeRegistered(moduleName, funcName), funcName);

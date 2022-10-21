@@ -399,12 +399,11 @@ JNIEXPORT jlong JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetStoreContext
     return (jlong)storeContext;
 }
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_WasmEdgeVM_getStatisticsContext
+JNIEXPORT jlong JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetStatisticsContext
         (JNIEnv * env, jobject thisObject) {
-
     WasmEdge_VMContext * vmContext = getVmContext(env, thisObject);
     WasmEdge_StatisticsContext *statCxt = WasmEdge_VMGetStatisticsContext(vmContext);
-    return CreateJavaStatisticsContext(env, statCxt);
+    return (jlong)statCxt;
 }
 
 JNIEXPORT jobject JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetImportModuleContext

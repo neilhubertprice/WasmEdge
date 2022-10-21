@@ -1,33 +1,50 @@
 package org.wasmedge;
 
-public class StatisticsContext {
-    private long pointer;
+public class StatisticsContext extends AbstractWasmEdgeContext {
+    public StatisticsContext(final long pointer) {
+        super(pointer);
+    }
 
     public StatisticsContext() {
-        nativeInit();
+        initialisePointer(nativeInit());
     }
 
-    private StatisticsContext(long pointer) {
-        this.pointer = pointer;
+    private native long nativeInit();
+
+    @Override
+    protected void doDelete() {
+        nativeDelete(pointer);
     }
 
-    private native void nativeInit();
+    private native void nativeDelete(long statContextPointer);
 
-    public native int getInstrCount();
-
-    public native double getInstrPerSecond();
-
-    public native void setCostTable(long[] costTable);
-
-    public native void setCostLimit(long costLimit);
-
-    public native long getTotalCost();
-
-    public void destroy() {
-        delete();
-        pointer = 0;
+    public int getInstrCount() {
+        return nativeGetInstrCount(pointer);
     }
 
-    public native void delete();
+    private native int nativeGetInstrCount(long statContextPointer);
 
+    public double getInstrPerSecond() {
+        return nativeGetInstrPerSecond(pointer);
+    }
+
+    private native double nativeGetInstrPerSecond(long statContextPointer);
+
+    public void setCostTable(long[] costTable) {
+        nativeSetCostTable(pointer, costTable);
+    }
+
+    private native void nativeSetCostTable(long statContextPointer, long[] costTable);
+
+    public void setCostLimit(long costLimit) {
+        nativeSetCostLimit(pointer, costLimit);
+    }
+
+    private native void nativeSetCostLimit(long statContextPointer, long costLimit);
+
+    public long getTotalCost() {
+        return nativeGetTotalCost(pointer);
+    }
+
+    private native long nativeGetTotalCost(long statContextPointer);
 }

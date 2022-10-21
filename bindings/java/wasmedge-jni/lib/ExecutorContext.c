@@ -23,9 +23,9 @@ WasmEdge_ExecutorContext *getExecutorContext(JNIEnv * env, jobject jExeCtx) {
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_nativeInit
-        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jobject jStatCxt) {
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jlong statContextPointer) {
     WasmEdge_ConfigureContext *confCxt = (WasmEdge_ConfigureContext *)configContextPointer;
-    WasmEdge_StatisticsContext * statCxt = getStatisticsContext(env, jStatCxt);
+    WasmEdge_StatisticsContext *statCxt = (WasmEdge_StatisticsContext *)statContextPointer;
 
     WasmEdge_ExecutorContext * exeCxt = WasmEdge_ExecutorCreate(confCxt, statCxt);
     setPointer(env, thisObject, (long)exeCxt);
