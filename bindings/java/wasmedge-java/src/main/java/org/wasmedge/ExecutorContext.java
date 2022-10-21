@@ -11,10 +11,18 @@ public class ExecutorContext {
 
     private native void nativeInit(long configureContextPointer, StatisticsContext statisticsContext);
 
+    public void instantiate(StoreContext storeContext, ASTModuleContext astModuleContext) {
+        nativeInstantiate(storeContext.getPointer(), astModuleContext);
+    }
 
-    public native void instantiate(StoreContext storeContext, ASTModuleContext astModuleContext);
+    private native void nativeInstantiate(long storeContextPointer, ASTModuleContext astModuleContext);
 
-    public native void invoke(StoreContext storeContext, String funcName,
+    public void invoke(StoreContext storeContext, String funcName,
+                              List<WasmEdgeValue> params, List<WasmEdgeValue> returns) {
+        nativeInvoke(storeContext.getPointer(), funcName, params, returns);
+    }
+
+    private native void nativeInvoke(long storeContextPointer, String funcName,
                               List<WasmEdgeValue> params, List<WasmEdgeValue> returns);
 
 
@@ -34,15 +42,25 @@ public class ExecutorContext {
         return valuesArray;
     }
 
-    public native void invokeRegistered(StoreContext storeContext,
-                                        String modeName, String funcName,
+    public void invokeRegistered(StoreContext storeContext, String moduleName, String funcName,
+                                        List<WasmEdgeValue> params, List<WasmEdgeValue> returns) {
+        nativeInvokeRegistered(storeContext.getPointer(), moduleName, funcName, params, returns);
+    }
+
+    private native void nativeInvokeRegistered(long storeContextPointer, String moduleName, String funcName,
                                         List<WasmEdgeValue> params, List<WasmEdgeValue> returns);
 
-    public native void registerModule(StoreContext storeCxt,
-                                      ASTModuleContext astCxt,
-                                      String modeName);
+    public void registerModule(StoreContext storeCxt, ASTModuleContext astCxt, String moduleName) {
+        nativeRegisterModule(storeCxt.getPointer(), astCxt, moduleName);
+    }
 
-    public native void registerImport(StoreContext storeCxt, ImportObjectContext importObjectContext);
+    private native void nativeRegisterModule(long storeContextPointer, ASTModuleContext astCxt, String moduleName);
+
+    public void registerImport(StoreContext storeCxt, ImportObjectContext importObjectContext) {
+        nativeRegisterImport(storeCxt.getPointer(), importObjectContext);
+    }
+
+    private native void nativeRegisterImport(long storeContextPointer, ImportObjectContext importObjectContext);
 
     public native void delete();
 }

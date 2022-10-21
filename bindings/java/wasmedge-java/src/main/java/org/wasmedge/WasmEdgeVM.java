@@ -19,10 +19,10 @@ public class WasmEdgeVM {
     public WasmEdgeVM(ConfigureContext configureContext, StoreContext storeContext) {
         this.configureContext = configureContext;
         this.storeContext = storeContext;
-        nativeInit(configureContext.getPointer(), storeContext);
+        nativeInit(configureContext.getPointer(), storeContext.getPointer());
     }
 
-    private native void nativeInit(long configureContextPointer, StoreContext storeContext);
+    private native void nativeInit(long configureContextPointer, long storeContextPointer);
 
     protected static void addExternRef(String key, Object val) {
         externRefMap.put(key, val);
@@ -42,15 +42,8 @@ public class WasmEdgeVM {
         return funcMap.get(key);
     }
 
-    private native void runWasmFromFile(String file,
-                                        String funcName,
-                                        WasmEdgeValue[] params,
-                                        int paramSize,
-                                        int[] paramTypes,
-                                        WasmEdgeValue[] returns,
-                                        int returnSize,
-                                        int[] returnTypes
-    );
+    private native void runWasmFromFile(String file, String funcName, WasmEdgeValue[] params, int paramSize, int[] paramTypes,
+                                        WasmEdgeValue[] returns, int returnSize, int[] returnTypes);
 
     /**
      * Run a wasm file.
@@ -60,10 +53,7 @@ public class WasmEdgeVM {
      * @param params   params for the function.
      * @param returns  return values.
      */
-    public void runWasmFromFile(String file,
-                                String funcName,
-                                List<WasmEdgeValue> params,
-                                List<WasmEdgeValue> returns) {
+    public void runWasmFromFile(String file, String funcName, List<WasmEdgeValue> params, List<WasmEdgeValue> returns) {
         WasmEdgeValue[] paramsArray = valueListToArray(params);
         int[] paramTypes = getValueTypeArray(params);
 
@@ -136,12 +126,8 @@ public class WasmEdgeVM {
         execute(funcName, paramsArray, params.size(), paramTypes, returnsArray, returns.size(), returnTypes);
     }
 
-    public native void execute(String funcName, WasmEdgeValue[] params,
-                               int paramSize,
-                               int[] paramTypes,
-                               WasmEdgeValue[] returns,
-                               int returnSize,
-                               int[] returnTypes);
+    public native void execute(String funcName, WasmEdgeValue[] params, int paramSize,  int[] paramTypes,
+                               WasmEdgeValue[] returns, int returnSize, int[] returnTypes);
 
     // Also cleans up ConfigureContext & StoreContext
     public void destroy() {
@@ -150,7 +136,7 @@ public class WasmEdgeVM {
         }
 
         if (storeContext != null) {
-            storeContext.destroy();
+            storeContext.delete();
         }
         delete();
         this.pointer = 0;
@@ -208,7 +194,11 @@ public class WasmEdgeVM {
     private native ImportObjectContext nativeGetImportModuleContext(int reg);
 
 
-    public native StoreContext getStoreContext();
+    public StoreContext getStoreContext() {
+        return new StoreContext(nativeGetStoreContext());
+    }
+
+    private native long nativeGetStoreContext();
 
     public native StatisticsContext getStatisticsContext();
 

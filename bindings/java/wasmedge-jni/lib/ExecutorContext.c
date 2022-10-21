@@ -31,24 +31,19 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_nativeInit
     setPointer(env, thisObject, (long)exeCxt);
 }
 
-/*
- * Class:     org_wasmedge_ExecutorContext
- * Method:    instantiate
- * Signature: (Lorg/wasmedge/StoreContext;Lorg/wasmedge/ASTModuleContext;)V
- */
-JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_instantiate__Lorg_wasmedge_StoreContext_2Lorg_wasmedge_ASTModuleContext_2
-        (JNIEnv * env, jobject thisObject, jobject jStoreCxt, jobject jAstModCxt) {
+JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_nativeInstantiate
+        (JNIEnv * env, jobject thisObject, jlong storeContextPointer, jobject jAstModCxt) {
     WasmEdge_ExecutorContext * exeCxt = getExecutorContext(env, thisObject);
-    WasmEdge_StoreContext * storeCxt = getStoreContext(env, jStoreCxt);
+    WasmEdge_StoreContext *storeCxt = (WasmEdge_StoreContext *)storeContextPointer;
     WasmEdge_ASTModuleContext * astModCxt = getASTModuleContext(env, jAstModCxt);
 
     WasmEdge_ExecutorInstantiate(exeCxt, storeCxt, astModCxt);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_invoke
-        (JNIEnv * env, jobject thisObject, jobject jStoreContext, jstring jFuncName, jobject jParams, jobject jReturns) {
+JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_nativeInvoke
+        (JNIEnv * env, jobject thisObject, jlong storeContextPointer, jstring jFuncName, jobject jParams, jobject jReturns) {
     WasmEdge_ExecutorContext *exeCxt = getExecutorContext(env, thisObject);
-    WasmEdge_StoreContext *storeCxt = getStoreContext(env, jStoreContext);
+    WasmEdge_StoreContext *storeCxt = (WasmEdge_StoreContext *)storeContextPointer;
 
     WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
 
@@ -79,16 +74,10 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_invoke
     WasmEdge_StringDelete(wFuncName);
 }
 
-/*
- * Class:     org_wasmedge_ExecutorContext
- * Method:    invokeRegistered
- * Signature: (Lorg/wasmedge/StoreContext;Ljava/lang/String;Ljava/lang/String;[Lorg/wasmedge/WasmEdgeValue;[I[Lorg/wasmedge/WasmEdgeValue;[I)V
- */
-JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_invokeRegistered
-        (JNIEnv *env, jobject thisObject, jobject jStoreCxt, jstring jModName, jstring jFuncName, jobject jParams, jobject jReturns) {
-
+JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_nativeInvokeRegistered
+        (JNIEnv *env, jobject thisObject, jlong storeContextPointer, jstring jModName, jstring jFuncName, jobject jParams, jobject jReturns) {
     WasmEdge_ExecutorContext * exeCxt = getExecutorContext(env, thisObject);
-    WasmEdge_StoreContext * storeCxt = getStoreContext(env, jStoreCxt);
+    WasmEdge_StoreContext *storeCxt = (WasmEdge_StoreContext *)storeContextPointer;
 
     WasmEdge_String wModName = JStringToWasmString(env, jModName);
     WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
@@ -123,10 +112,10 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_invokeRegistered
 
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_registerModule
-        (JNIEnv * env, jobject thisObject, jobject jStoreCxt, jobject jAstModCxt, jstring jModName) {
+JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_nativeRegisterModule
+        (JNIEnv * env, jobject thisObject, jlong storeContextPointer, jobject jAstModCxt, jstring jModName) {
     WasmEdge_ExecutorContext *exeCxt = getExecutorContext(env, thisObject);
-    WasmEdge_StoreContext *storeCxt = getStoreContext(env, jStoreCxt);
+    WasmEdge_StoreContext *storeCxt = (WasmEdge_StoreContext *)storeContextPointer;
 
     WasmEdge_ASTModuleContext * astModCxt = getASTModuleContext(env, jAstModCxt);
 
@@ -139,14 +128,13 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_registerModule
     WasmEdge_StringDelete(wModName);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_registerImport
-        (JNIEnv *env, jobject thisObject, jobject jStore, jobject jImpObj) {
+JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_nativeRegisterImport
+        (JNIEnv *env, jobject thisObject, jlong storeContextPointer, jobject jImpObj) {
     WasmEdge_ExecutorContext *exeCxt = getExecutorContext(env, thisObject);
-    WasmEdge_StoreContext *storeCxt = getStoreContext(env, jStore);
+    WasmEdge_StoreContext *storeCxt = (WasmEdge_StoreContext *)storeContextPointer;
     WasmEdge_ImportObjectContext *impObj = getImportObjectContext(env, jImpObj);
 
     WasmEdge_ExecutorRegisterImport(exeCxt, storeCxt, impObj);
-
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_delete

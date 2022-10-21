@@ -2,69 +2,125 @@ package org.wasmedge;
 
 import java.util.List;
 
-public class StoreContext {
-    private long pointer = 0;
+public class StoreContext extends AbstractWasmEdgeContext {
+    public StoreContext(final long pointer) {
+        super(pointer);
+    }
 
     public StoreContext() {
-        nativeInit();
+        initialisePointer(nativeInit());
     }
 
-    private StoreContext(long pointer) {
-        this.pointer = pointer;
+    private native long nativeInit();
+
+    @Override
+    protected void doDelete() {
+        nativeDelete(pointer);
     }
 
-    public void destroy() {
-        delete();
-        pointer = 0;
+    private native void nativeDelete(long storeContextPointer);
+
+
+    public List<String> listFunction() {
+        return nativeListFunction(pointer);
     }
 
-    private native void nativeInit();
+    private native List<String> nativeListFunction(long storeContextPointer);
 
-    private native void delete();
+    public List<String> listFunctionRegistered(String moduleName) {
+        return nativeListFunctionRegistered(pointer, moduleName);
+    }
 
-
-    public native List<String> listFunction();
-
-    public native List<String> listFunctionRegistered(String moduleName);
+    private native List<String> nativeListFunctionRegistered(long storeContextPointer, String moduleName);
 
     public FunctionInstanceContext findFunction(String funcName) {
-        return new FunctionInstanceContext(nativeFindFunction(funcName));
+        return new FunctionInstanceContext(nativeFindFunction(pointer, funcName));
     }
 
-    private native long nativeFindFunction(String funcName);
+    private native long nativeFindFunction(long storeContextPointer, String funcName);
 
     public FunctionInstanceContext findFunctionRegistered(String moduleName, String funcName) {
-        return new FunctionInstanceContext(nativeFindFunctionRegistered(moduleName, funcName));
+        return new FunctionInstanceContext(nativeFindFunctionRegistered(pointer, moduleName, funcName));
     }
 
-    private native long nativeFindFunctionRegistered(String moduleName, String funcName);
+    private native long nativeFindFunctionRegistered(long storeContextPointer, String moduleName, String funcName);
 
-    public native List<String> listTable();
+    public List<String> listTable() {
+        return nativeListTable(pointer);
+    }
 
-    public native List<String> listTableRegistered(String moduleName);
+    private native List<String> nativeListTable(long storeContextPointer);
 
-    public native TableInstanceContext findTable(String tableName);
+    public List<String> listTableRegistered(String moduleName) {
+        return nativeListTableRegistered(pointer, moduleName);
+    }
 
-    public native TableInstanceContext findTableRegistered(String moduleName, String tableName);
+    private native List<String> nativeListTableRegistered(long storeContextPointer, String moduleName);
 
-    public native List<String> listMemory();
+    public TableInstanceContext findTable(String tableName) {
+        return nativeFindTable(pointer, tableName);
+    }
 
-    public native List<String> listMemoryRegistered(String moduleName);
+    private native TableInstanceContext nativeFindTable(long storeContextPointer, String tableName);
 
-    public native MemoryInstanceContext findMemory(String memoryName);
+    public TableInstanceContext findTableRegistered(String moduleName, String tableName) {
+        return nativeFindTableRegistered(pointer, moduleName, tableName);
+    }
 
-    public native MemoryInstanceContext findMemoryRegistered(String moduleName,
-                                                             String memoryName);
+    private native TableInstanceContext nativeFindTableRegistered(long storeContextPointer, String moduleName, String tableName);
 
-    public native List<String> listGlobal();
+    public List<String> listMemory() {
+        return nativeListMemory(pointer);
+    }
 
-    public native List<String> listGlobalRegistered(String moduleName);
+    private native List<String> nativeListMemory(long storeContextPointer);
 
-    public native GlobalInstanceContext findGlobal(String name);
+    public List<String> listMemoryRegistered(String moduleName) {
+        return nativeListMemoryRegistered(pointer, moduleName);
+    }
 
-    public native GlobalInstanceContext findGlobalRegistered(String moduleName,
-                                                             String globalName);
+    private native List<String> nativeListMemoryRegistered(long storeContextPointer, String moduleName);
 
-    public native List<String> listModule();
+    public MemoryInstanceContext findMemory(String memoryName) {
+        return nativeFindMemory(pointer, memoryName);
+    }
+
+    private native MemoryInstanceContext nativeFindMemory(long storeContextPointer, String memoryName);
+
+    public MemoryInstanceContext findMemoryRegistered(String moduleName, String memoryName) {
+        return nativeFindMemoryRegistered(pointer, moduleName, memoryName);
+    }
+
+    private native MemoryInstanceContext nativeFindMemoryRegistered(long storeContextPointer, String moduleName, String memoryName);
+
+    public List<String> listGlobal() {
+        return nativeListGlobal(pointer);
+    }
+
+    private native List<String> nativeListGlobal(long storeContextPointer);
+
+    public List<String> listGlobalRegistered(String moduleName) {
+        return nativeListGlobalRegistered(pointer, moduleName);
+    }
+
+    private native List<String> nativeListGlobalRegistered(long storeContextPointer, String moduleName);
+
+    public GlobalInstanceContext findGlobal(String name) {
+        return nativeFindGlobal(pointer, name);
+    }
+
+    private native GlobalInstanceContext nativeFindGlobal(long storeContextPointer, String name);
+
+    public GlobalInstanceContext findGlobalRegistered(String moduleName, String globalName) {
+        return nativeFindGlobalRegistered(pointer, moduleName, globalName);
+    }
+
+    private native GlobalInstanceContext nativeFindGlobalRegistered(long storeContextPointer, String moduleName, String globalName);
+
+    public List<String> listModule() {
+        return nativeListModule(pointer);
+    }
+
+    private native List<String> nativeListModule(long storeContextPointer);
 
 }

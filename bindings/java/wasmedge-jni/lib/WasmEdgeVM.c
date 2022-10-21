@@ -122,9 +122,9 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromFile
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeInit
-        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jobject jStoreContext) {
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jlong storeContextPointer) {
     WasmEdge_ConfigureContext *ConfigureContext = (WasmEdge_ConfigureContext *)configContextPointer;
-    WasmEdge_StoreContext * StoreContext = getStoreContext(env, jStoreContext);
+    WasmEdge_StoreContext *StoreContext = (WasmEdge_StoreContext *)storeContextPointer;
 
     WasmEdge_VMContext* VMContext = WasmEdge_VMCreate(ConfigureContext, StoreContext);
 
@@ -392,12 +392,11 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_executeRegistered
     free(wasm_params);
 }
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_WasmEdgeVM_getStoreContext
+JNIEXPORT jlong JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetStoreContext
         (JNIEnv * env, jobject thisObject) {
-    WasmEdge_VMContext * vmContext = getVmContext(env, thisObject);
-    WasmEdge_StoreContext* storeContext = WasmEdge_VMGetStoreContext(vmContext);
-    return CreateJavaStoreContext(env, storeContext);
-
+    WasmEdge_VMContext *vmContext = getVmContext(env, thisObject);
+    WasmEdge_StoreContext *storeContext = WasmEdge_VMGetStoreContext(vmContext);
+    return (jlong)storeContext;
 }
 
 JNIEXPORT jobject JNICALL Java_org_wasmedge_WasmEdgeVM_getStatisticsContext
