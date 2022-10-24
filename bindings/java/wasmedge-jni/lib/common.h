@@ -27,10 +27,6 @@ jmethodID findJavaMethod(JNIEnv* env, jclass class, char* methodName, char* sig)
 
 void getClassName(JNIEnv* env, jobject obj, char* buff);
 
-long getPointer(JNIEnv* env, jobject obj);
-
-void setPointer(JNIEnv* env, jobject obj, long val);
-
 void handleWasmEdgeResult(JNIEnv* env, WasmEdge_Result * result);
 
 int getIntVal(JNIEnv *env, jobject val);

@@ -13,16 +13,16 @@ public class WasmEdgeVM {
     private static final Map<String, Object> externRefMap = new HashMap<>();
     private final ConfigureContext configureContext;
     private final StoreContext storeContext;
-    private long pointer;
+    private VMContext vmContext;
 
 
     public WasmEdgeVM(ConfigureContext configureContext, StoreContext storeContext) {
         this.configureContext = configureContext;
         this.storeContext = storeContext;
-        nativeInit(configureContext.getPointer(), storeContext.getPointer());
+        this.vmContext = new VMContext(nativeInit(configureContext.getPointer(), storeContext.getPointer()));
     }
 
-    private native void nativeInit(long configureContextPointer, long storeContextPointer);
+    private native long nativeInit(long configureContextPointer, long storeContextPointer);
 
     protected static void addExternRef(String key, Object val) {
         externRefMap.put(key, val);
@@ -42,9 +42,6 @@ public class WasmEdgeVM {
         return funcMap.get(key);
     }
 
-    private native void runWasmFromFile(String file, String funcName, WasmEdgeValue[] params, int paramSize, int[] paramTypes,
-                                        WasmEdgeValue[] returns, int returnSize, int[] returnTypes);
-
     /**
      * Run a wasm file.
      *
@@ -60,9 +57,12 @@ public class WasmEdgeVM {
         WasmEdgeValue[] returnsArray = valueListToArray(returns);
         int[] returnTypes = getValueTypeArray(returns);
 
-        runWasmFromFile(file, funcName, paramsArray, params.size(), paramTypes,
+        nativeRunWasmFromFile(vmContext.getPointer(), file, funcName, paramsArray, params.size(), paramTypes,
                 returnsArray, returns.size(), returnTypes);
     }
+
+    private native void nativeRunWasmFromFile(long vmContextPointer, String file, String funcName, WasmEdgeValue[] params, int paramSize, int[] paramTypes,
+                                              WasmEdgeValue[] returns, int returnSize, int[] returnTypes);
 
     public void runWasmFromBuffer(byte[] buffer, String funcName, List<WasmEdgeValue> params, List<WasmEdgeValue> returns) {
         WasmEdgeValue[] paramsArray = valueListToArray(params);
@@ -71,11 +71,11 @@ public class WasmEdgeVM {
         WasmEdgeValue[] returnsArray = valueListToArray(returns);
         int[] returnTypes = getValueTypeArray(returns);
 
-        runWasmFromBuffer(buffer, funcName, paramsArray, paramTypes, returnsArray, returnTypes);
+        nativeRunWasmFromBuffer(vmContext.getPointer(), buffer, funcName, paramsArray, paramTypes, returnsArray, returnTypes);
     }
 
-    private native void runWasmFromBuffer(byte[] buffer, String funcName, WasmEdgeValue[] params, int[] paramTypes, WasmEdgeValue[] returns, int[] returnTypes);
-
+    private native void nativeRunWasmFromBuffer(long vmContextPointer, byte[] buffer, String funcName, WasmEdgeValue[] params,
+                                                int[] paramTypes, WasmEdgeValue[] returns, int[] returnTypes);
 
     public void runWasmFromASTModule(ASTModuleContext astModuleContext, String funcName, List<WasmEdgeValue> params, List<WasmEdgeValue> returns) {
         WasmEdgeValue[] paramsArray = valueListToArray(params);
@@ -84,11 +84,12 @@ public class WasmEdgeVM {
         WasmEdgeValue[] returnsArray = valueListToArray(returns);
         int[] returnTypes = getValueTypeArray(returns);
 
-        nativeRunWasmFromASTModule(astModuleContext.getPointer(), funcName, paramsArray, paramTypes, returnsArray, returnTypes);
+        nativeRunWasmFromASTModule(vmContext.getPointer(), astModuleContext.getPointer(), funcName, paramsArray, paramTypes,
+                returnsArray, returnTypes);
     }
 
-    private native void nativeRunWasmFromASTModule(long astmContextPointer, String funcName, WasmEdgeValue[] params, int[] paramTypes,
-                                                   WasmEdgeValue[] returns, int[] returnTypes);
+    private native void nativeRunWasmFromASTModule(long vmContextPointer, long astmContextPointer, String funcName, WasmEdgeValue[] params,
+                                                   int[] paramTypes, WasmEdgeValue[] returns, int[] returnTypes);
 
     private int[] getValueTypeArray(List<WasmEdgeValue> values) {
         int[] types = new int[values.size()];
@@ -105,16 +106,28 @@ public class WasmEdgeVM {
         return valuesArray;
     }
 
-    public native void loadWasmFromFile(String filePath);
+    public void loadWasmFromFile(String filePath) {
+        nativeLoadWasmFromFile(vmContext.getPointer(), filePath);
+    }
+
+    private native void nativeLoadWasmFromFile(long vmContextPointer, String filePath);
 
     // Not yet implemented in the JNI layer
 //    public native void loadWasmFromBuffer(byte[] buffer);
 //
 //    public native void loadWasmFromASTModule(ASTModuleContext astModuleContext);
 
-    public native void validate();
+    public void validate() {
+        nativeValidate(vmContext.getPointer());
+    }
 
-    public native void instantiate();
+    private native void nativeValidate(long vmContextPointer);
+
+    public void instantiate() {
+        nativeInstantiate(vmContext.getPointer());
+    }
+
+    private native void nativeInstantiate(long vmContextPointer);
 
     public void execute(String funcName, List<WasmEdgeValue> params, List<WasmEdgeValue> returns) {
         WasmEdgeValue[] paramsArray = valueListToArray(params);
@@ -123,11 +136,12 @@ public class WasmEdgeVM {
         WasmEdgeValue[] returnsArray = valueListToArray(returns);
         int[] returnTypes = getValueTypeArray(returns);
 
-        execute(funcName, paramsArray, params.size(), paramTypes, returnsArray, returns.size(), returnTypes);
+        nativeExecute(vmContext.getPointer(), funcName, paramsArray, params.size(), paramTypes,
+                returnsArray, returns.size(), returnTypes);
     }
 
-    public native void execute(String funcName, WasmEdgeValue[] params, int paramSize,  int[] paramTypes,
-                               WasmEdgeValue[] returns, int returnSize, int[] returnTypes);
+    private native void nativeExecute(long vmContextPointer, String funcName, WasmEdgeValue[] params, int paramSize,
+                                      int[] paramTypes, WasmEdgeValue[] returns, int returnSize, int[] returnTypes);
 
     // Also cleans up ConfigureContext & StoreContext
     public void destroy() {
@@ -138,25 +152,33 @@ public class WasmEdgeVM {
         if (storeContext != null) {
             storeContext.delete();
         }
-        delete();
-        this.pointer = 0;
+
+        vmContext.delete();
     }
 
-    public native void registerModuleFromFile(String modName, String filePath);
+    public void registerModuleFromFile(String modName, String filePath) {
+        nativeRegisterModuleFromFile(vmContext.getPointer(), modName, filePath);
+    }
 
-    public native void registerModuleFromBuffer(String moduleName, byte[] buffer);
+    private native void nativeRegisterModuleFromFile(long vmContextPointer, String modName, String filePath);
+
+    public void registerModuleFromBuffer(String moduleName, byte[] buffer) {
+        nativeRegisterModuleFromBuffer(vmContext.getPointer(), moduleName, buffer);
+    }
+
+    private native void nativeRegisterModuleFromBuffer(long vmContextPointer, String moduleName, byte[] buffer);
 
     public void registerModuleFromImport(ImportObjectContext importObjectContext) {
-        nativeRegisterModuleFromImport(importObjectContext.getPointer());
+        nativeRegisterModuleFromImport(vmContext.getPointer(), importObjectContext.getPointer());
     }
 
-    private native void nativeRegisterModuleFromImport(long importObjectPointer);
+    private native void nativeRegisterModuleFromImport(long vmContextPointer, long importObjectPointer);
 
     public void registerModuleFromASTModule(String moduleName, ASTModuleContext astModuleContext) {
-        nativeRegisterModuleFromASTModule(moduleName, astModuleContext.getPointer());
+        nativeRegisterModuleFromASTModule(vmContext.getPointer(), moduleName, astModuleContext.getPointer());
     }
 
-    private native void nativeRegisterModuleFromASTModule(String moduleName, long astmContextPointer);
+    private native void nativeRegisterModuleFromASTModule(long vmContextPointer, String moduleName, long astmContextPointer);
 
     public void executeRegistered(String modName, String funcName, List<WasmEdgeValue> params,
                                   List<WasmEdgeValue> returns) {
@@ -165,21 +187,21 @@ public class WasmEdgeVM {
 
         WasmEdgeValue[] returnsArray = valueListToArray(returns);
         int[] returnTypes = getValueTypeArray(returns);
-        executeRegistered(modName, funcName, paramsArray, paramTypes, returnsArray, returnTypes);
+        nativeExecuteRegistered(vmContext.getPointer(), modName, funcName, paramsArray, paramTypes, returnsArray, returnTypes);
     }
 
-    private native void executeRegistered(String modName, String funcName, WasmEdgeValue[] params,
+    private native void nativeExecuteRegistered(long vmContextPointer, String modName, String funcName, WasmEdgeValue[] params,
                                           int[] paramTypes, WasmEdgeValue[] returns, int[] returnTypes);
 
-    private native int nativeGetFunctionListLength();
-    private native int nativeGetFunctionList(long[] jPointersArray, Object[] jNamesArray, int bufferLen);
+    private native int nativeGetFunctionListLength(long vmContextPointer);
+    private native int nativeGetFunctionList(long vmContextPointer, long[] jPointersArray, Object[] jNamesArray, int bufferLen);
 
     public List<FunctionTypeContext> getFunctionList() {
-        final int funcListLen = nativeGetFunctionListLength();
+        final int funcListLen = nativeGetFunctionListLength(vmContext.getPointer());
         final long[] jPointersArray = new long[funcListLen];
         final String[] jNamesArray = new String[funcListLen];
 
-        final int actualFuncListLen = nativeGetFunctionList(jPointersArray, jNamesArray, funcListLen);
+        final int actualFuncListLen = nativeGetFunctionList(vmContext.getPointer(), jPointersArray, jNamesArray, funcListLen);
 
         List<FunctionTypeContext> funcList = new ArrayList<>(actualFuncListLen);
         for (int i = 0; i < actualFuncListLen; i++) {
@@ -190,37 +212,33 @@ public class WasmEdgeVM {
     }
 
     public FunctionTypeContext getFunctionType(String funcName) {
-        return new FunctionTypeContext(nativeGetFunctionType(funcName), funcName);
+        return new FunctionTypeContext(nativeGetFunctionType(vmContext.getPointer(), funcName), funcName);
     }
 
-    private native long nativeGetFunctionType(String funcName);
+    private native long nativeGetFunctionType(long vmContextPointer, String funcName);
 
     public ImportObjectContext getImportModuleContext(HostRegistration reg) {
-        return new ImportObjectContext(nativeGetImportModuleContext(reg.getVal()));
+        return new ImportObjectContext(nativeGetImportModuleContext(vmContext.getPointer(), reg.getVal()));
     }
 
-    private native long nativeGetImportModuleContext(int reg);
+    private native long nativeGetImportModuleContext(long vmContextPointer, int reg);
 
 
     public StoreContext getStoreContext() {
-        return new StoreContext(nativeGetStoreContext());
+        return new StoreContext(nativeGetStoreContext(vmContext.getPointer()));
     }
 
-    private native long nativeGetStoreContext();
+    private native long nativeGetStoreContext(long vmContextPointer);
 
     public StatisticsContext getStatisticsContext() {
-        return new StatisticsContext(nativeGetStatisticsContext());
+        return new StatisticsContext(nativeGetStatisticsContext(vmContext.getPointer()));
     }
 
-    private native long nativeGetStatisticsContext();
+    private native long nativeGetStatisticsContext(long vmContextPointer);
 
     public FunctionTypeContext getFunctionTypeRegistered(String moduleName,  String funcName) {
-        return new FunctionTypeContext(nativeGetFunctionTypeRegistered(moduleName, funcName), funcName);
+        return new FunctionTypeContext(nativeGetFunctionTypeRegistered(vmContext.getPointer(), moduleName, funcName), funcName);
     }
 
-    private native long nativeGetFunctionTypeRegistered(String moduleName, String funcName);
-
-    public native void cleanUp();
-
-    private native void delete();
+    private native long nativeGetFunctionTypeRegistered(long vmContextPointer, String moduleName, String funcName);
 }

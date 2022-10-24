@@ -93,28 +93,6 @@ void getClassName(JNIEnv* env, jobject obj, char* buff) {
     (*env)->ReleaseStringUTFChars(env, strObj, str);
 }
 
-
-long getPointer(JNIEnv* env, jobject obj) {
-    jclass cls = (*env)->GetObjectClass(env, obj);
-
-    if (cls == NULL) {
-        exitWithError(JVM_ERROR, "class not found!");
-    }
-
-    jfieldID fidPointer = (*env)->GetFieldID(env, cls, "pointer", "J");
-    if(fidPointer == NULL) {
-        exitWithError(JVM_ERROR, "pointer filed not found!");
-    }
-    jlong value = (*env)->GetLongField(env, obj, fidPointer);
-    return value;
-}
-
-void setPointer(JNIEnv* env, jobject obj, jlong val) {
-    jclass cls = (*env)->GetObjectClass(env, obj);
-    jfieldID fidPointer = (*env)->GetFieldID(env, cls, "pointer", "J");
-    (*env)->SetLongField(env, obj, fidPointer, val);
-}
-
 void handleWasmEdgeResult(JNIEnv* env, WasmEdge_Result * result) {
     if(!WasmEdge_ResultOK(*result)) {
         char exceptionBuffer[1024];

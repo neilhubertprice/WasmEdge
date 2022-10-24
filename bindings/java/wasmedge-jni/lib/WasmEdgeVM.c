@@ -67,25 +67,13 @@ jobject createDoubleJavaLongValueObject(JNIEnv *env, WasmEdge_Value val) {
     return j_val;
 }
 
-
-
-WasmEdge_VMContext* getVmContext(JNIEnv* env, jobject vmContextObj) {
-    long pointerVal = getPointer(env, vmContextObj);
-    return (WasmEdge_VMContext*) pointerVal;
-}
-
-
-JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromFile
-        (JNIEnv *env, jobject this_object, jstring file_path, jstring jFuncName,
+JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeRunWasmFromFile
+        (JNIEnv *env, jobject this_object, jlong vmContextPointer, jstring file_path, jstring jFuncName,
          jobjectArray params, jint param_size, jintArray param_types, jobjectArray returns, jint return_size,
          jintArray return_types) {
-
-
-    /* The configure and store context to the VM creation can be NULL. */
-    WasmEdge_VMContext *VMCxt = getVmContext(env, this_object);
+    WasmEdge_VMContext *VMCxt = (WasmEdge_VMContext *)vmContextPointer;
 
     WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
-
 
     /* The parameters and returns arrays. */
     WasmEdge_Value *wasm_params = parseJavaParams(env, params, param_types, param_size);
@@ -112,7 +100,6 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromFile
                          exceptionBuffer);
     }
 
-
     /* Resources deallocations. */
     WasmEdge_StringDelete(wFuncName);
     (*env)->ReleaseStringUTFChars(env, file_path, c_file_path);
@@ -121,47 +108,48 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromFile
     return;
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeInit
+JNIEXPORT jlong JNICALL Java_org_wasmedge_WasmEdgeVM_nativeInit
         (JNIEnv * env, jobject thisObject, jlong configContextPointer, jlong storeContextPointer) {
     WasmEdge_ConfigureContext *ConfigureContext = (WasmEdge_ConfigureContext *)configContextPointer;
     WasmEdge_StoreContext *StoreContext = (WasmEdge_StoreContext *)storeContextPointer;
 
     WasmEdge_VMContext* VMContext = WasmEdge_VMCreate(ConfigureContext, StoreContext);
 
-    setPointer(env, thisObject, (jlong)VMContext);
+    return (jlong)VMContext;
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_loadWasmFromFile
-        (JNIEnv * env, jobject thisObject, jstring filePath) {
+JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeLoadWasmFromFile
+        (JNIEnv * env, jobject thisObject, jlong vmContextPointer, jstring filePath) {
+    WasmEdge_VMContext *VMCxt = (WasmEdge_VMContext *)vmContextPointer;
     const char *c_file_path = (*env)->GetStringUTFChars(env, filePath, NULL);
     
-    WasmEdge_Result res = WasmEdge_VMLoadWasmFromFile(getVmContext(env, thisObject), c_file_path);
+    WasmEdge_Result res = WasmEdge_VMLoadWasmFromFile(VMCxt, c_file_path);
     handleWasmEdgeResult(env, &res);
 
     (*env)->ReleaseStringUTFChars(env, filePath, c_file_path);
 }
 
 
-JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_validate
-        (JNIEnv *env, jobject thisObject) {
-    WasmEdge_Result result =  WasmEdge_VMValidate(getVmContext(env, thisObject));
+JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeValidate
+        (JNIEnv *env, jobject thisObject, jlong vmContextPointer) {
+    WasmEdge_VMContext *VMCxt = (WasmEdge_VMContext *)vmContextPointer;
+    WasmEdge_Result result =  WasmEdge_VMValidate(VMCxt);
     handleWasmEdgeResult(env, &result);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_instantiate
-        (JNIEnv *env, jobject thisObject) {
-    WasmEdge_Result result = WasmEdge_VMInstantiate(getVmContext(env, thisObject));
+JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeInstantiate
+        (JNIEnv *env, jobject thisObject, jlong vmContextPointer) {
+    WasmEdge_VMContext *VMCxt = (WasmEdge_VMContext *)vmContextPointer;
+    WasmEdge_Result result = WasmEdge_VMInstantiate(VMCxt);
     handleWasmEdgeResult(env, &result);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_execute
-        (JNIEnv *env, jobject thisObject, jstring jFuncName, jobjectArray params, jint paramSize,
+JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeExecute
+        (JNIEnv *env, jobject thisObject, jlong vmContextPointer, jstring jFuncName, jobjectArray params, jint paramSize,
          jintArray paramTypes, jobjectArray returns, jint returnSize, jintArray returnTypes) {
-
-    WasmEdge_VMContext *VMCxt = getVmContext(env, thisObject);
+    WasmEdge_VMContext *VMCxt = (WasmEdge_VMContext *)vmContextPointer;
 
     WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
-
 
     /* The parameters and returns arrays. */
     WasmEdge_Value *wasm_params = parseJavaParams(env, params, paramTypes, paramSize);
@@ -187,22 +175,16 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_execute
 }
 
 
-JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_delete
-        (JNIEnv * env, jobject thisObj) {
-    WasmEdge_VMDelete(getVmContext(env, thisObj));
-}
-
-
 JNIEXPORT jint JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetFunctionListLength
-        (JNIEnv *env , jobject thisObject) {
-    WasmEdge_VMContext* vmContext = getVmContext(env, thisObject);
+        (JNIEnv *env, jobject thisObject, jlong vmContextPointer) {
+    WasmEdge_VMContext* vmContext = (WasmEdge_VMContext *)vmContextPointer;
 
     return WasmEdge_VMGetFunctionListLength(vmContext);
 }
 
 JNIEXPORT jint JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetFunctionList
-        (JNIEnv *env , jobject thisObject, jlongArray jPointersArray, jobjectArray jNamesArray, jint bufferLen) {
-    WasmEdge_VMContext* vmContext = getVmContext(env, thisObject);
+        (JNIEnv *env, jobject thisObject, jlong vmContextPointer, jlongArray jPointersArray, jobjectArray jNamesArray, jint bufferLen) {
+    WasmEdge_VMContext* vmContext = (WasmEdge_VMContext *)vmContextPointer;
 
     const WasmEdge_FunctionTypeContext** funcList = (const WasmEdge_FunctionTypeContext**)malloc(sizeof (WasmEdge_FunctionTypeContext *) * bufferLen);
     WasmEdge_String* nameList = (WasmEdge_String*)malloc(sizeof (struct WasmEdge_String) * bufferLen);
@@ -224,8 +206,8 @@ JNIEXPORT jint JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetFunctionList
 }
 
 JNIEXPORT jlong JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetFunctionType
-        (JNIEnv * env, jobject thisObject, jstring jFuncName) {
-    WasmEdge_VMContext *vmContext = getVmContext(env, thisObject);
+        (JNIEnv * env, jobject thisObject, jlong vmContextPointer, jstring jFuncName) {
+    WasmEdge_VMContext *vmContext = (WasmEdge_VMContext *)vmContextPointer;
 
     WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
 
@@ -236,9 +218,9 @@ JNIEXPORT jlong JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetFunctionType
     return (jlong)functionTypeContext;
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_registerModuleFromFile
-        (JNIEnv * env, jobject thisObject, jstring jModName, jstring jFilePath) {
-    WasmEdge_VMContext * vmContext = getVmContext(env, thisObject);
+JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeRegisterModuleFromFile
+        (JNIEnv * env, jobject thisObject, jlong vmContextPointer, jstring jModName, jstring jFilePath) {
+    WasmEdge_VMContext *vmContext = (WasmEdge_VMContext *)vmContextPointer;
 
     WasmEdge_String wModName = JStringToWasmString(env, jModName);
     const char* filePath = (*env)->GetStringUTFChars(env, jFilePath, NULL);
@@ -251,10 +233,9 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_registerModuleFromFile
     handleWasmEdgeResult(env, &result);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_registerModuleFromBuffer
-        (JNIEnv * env, jobject thisObject, jstring jModName, jbyteArray jBuff) {
-
-    WasmEdge_VMContext* vm = getVmContext(env, thisObject);
+JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeRegisterModuleFromBuffer
+        (JNIEnv * env, jobject thisObject, jlong vmContextPointer, jstring jModName, jbyteArray jBuff) {
+    WasmEdge_VMContext *vmContext = (WasmEdge_VMContext *)vmContextPointer;
 
     jbyte* data = (*env)->GetByteArrayElements(env, jBuff, 0);
     checkException(env, "Error retrieving byte array");
@@ -262,7 +243,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_registerModuleFromBuffer
 
     WasmEdge_String wModName = JStringToWasmString(env, jModName);
 
-    WasmEdge_VMRegisterModuleFromBuffer(vm, wModName, (uint8_t *)data, size);
+    WasmEdge_VMRegisterModuleFromBuffer(vmContext, wModName, (uint8_t *)data, size);
     
     (*env)->ReleaseByteArrayElements(env, jBuff, data, 0);
     WasmEdge_StringDelete(wModName);
@@ -270,8 +251,8 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_registerModuleFromBuffer
 
 
 JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeRegisterModuleFromASTModule
-        (JNIEnv * env, jobject thisObject, jstring jModName, jlong astmContextPointer) {
-    WasmEdge_VMContext * vmContext = getVmContext(env, thisObject);
+        (JNIEnv * env, jobject thisObject, jlong vmContextPointer, jstring jModName, jlong astmContextPointer) {
+    WasmEdge_VMContext *vmContext = (WasmEdge_VMContext *)vmContextPointer;
     WasmEdge_ASTModuleContext * mod = (WasmEdge_ASTModuleContext *)astmContextPointer;
    
     WasmEdge_String wModName = JStringToWasmString(env, jModName);
@@ -284,12 +265,10 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeRegisterModuleFromASTM
 }
 
 
-JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromBuffer
-        (JNIEnv * env, jobject thisObject, jbyteArray jBuff, jstring jFuncName,
-         jobjectArray jParams, jintArray jParamTypes, jobjectArray jReturns,
-         jintArray jReturnTypes) {
-
-    WasmEdge_VMContext *vmContext = getVmContext(env, thisObject);
+JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeRunWasmFromBuffer
+        (JNIEnv * env, jobject thisObject, jlong vmContextPointer, jbyteArray jBuff, jstring jFuncName,
+         jobjectArray jParams, jintArray jParamTypes, jobjectArray jReturns, jintArray jReturnTypes) {
+    WasmEdge_VMContext *vmContext = (WasmEdge_VMContext *)vmContextPointer;
 
     jbyte* buff = (*env)->GetByteArrayElements(env, jBuff, 0);
     jsize size = (*env)->GetArrayLength(env, jBuff);
@@ -321,11 +300,10 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_runWasmFromBuffer
     free(wasm_params);
 }
 
-
 JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeRunWasmFromASTModule
-        (JNIEnv * env, jobject thisObject, jlong astmContextPointer, jstring jFuncName,
+        (JNIEnv * env, jobject thisObject, jlong vmContextPointer, jlong astmContextPointer, jstring jFuncName,
         jobjectArray jParams, jintArray jParamTypes, jobjectArray jReturns, jintArray jReturnTypes) {
-    WasmEdge_VMContext *vmContext = getVmContext(env, thisObject);
+    WasmEdge_VMContext *vmContext = (WasmEdge_VMContext *)vmContextPointer;
     WasmEdge_ASTModuleContext *mod = (WasmEdge_ASTModuleContext *)astmContextPointer;
     
     WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
@@ -354,11 +332,10 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeRunWasmFromASTModule
     free(wasm_params);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_executeRegistered
-        (JNIEnv * env, jobject thisObject, jstring jModName, jstring jFuncName,
+JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeExecuteRegistered
+        (JNIEnv * env, jobject thisObject, jlong vmContextPointer, jstring jModName, jstring jFuncName,
         jobjectArray jParams, jintArray jParamTypes, jobjectArray jReturns, jintArray jReturnTypes) {
-    WasmEdge_VMContext * vmContext = getVmContext(env, thisObject);
-
+    WasmEdge_VMContext *vmContext = (WasmEdge_VMContext *)vmContextPointer;
 
     WasmEdge_String wModName = JStringToWasmString(env, jModName);
     WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
@@ -390,22 +367,22 @@ JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_executeRegistered
 }
 
 JNIEXPORT jlong JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetStoreContext
-        (JNIEnv * env, jobject thisObject) {
-    WasmEdge_VMContext *vmContext = getVmContext(env, thisObject);
+        (JNIEnv * env, jobject thisObject, jlong vmContextPointer) {
+    WasmEdge_VMContext *vmContext = (WasmEdge_VMContext *)vmContextPointer;
     WasmEdge_StoreContext *storeContext = WasmEdge_VMGetStoreContext(vmContext);
     return (jlong)storeContext;
 }
 
 JNIEXPORT jlong JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetStatisticsContext
-        (JNIEnv * env, jobject thisObject) {
-    WasmEdge_VMContext * vmContext = getVmContext(env, thisObject);
+        (JNIEnv * env, jobject thisObject, jlong vmContextPointer) {
+    WasmEdge_VMContext *vmContext = (WasmEdge_VMContext *)vmContextPointer;
     WasmEdge_StatisticsContext *statCxt = WasmEdge_VMGetStatisticsContext(vmContext);
     return (jlong)statCxt;
 }
 
 JNIEXPORT jlong JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetImportModuleContext
-        (JNIEnv *env, jobject thisObject, jint reg) {
-    WasmEdge_VMContext *vmContext = getVmContext(env, thisObject);
+        (JNIEnv *env, jobject thisObject, jlong vmContextPointer, jint reg) {
+    WasmEdge_VMContext *vmContext = (WasmEdge_VMContext *)vmContextPointer;
     WasmEdge_ImportObjectContext *imp = WasmEdge_VMGetImportModuleContext(vmContext, (enum WasmEdge_HostRegistration)reg);
 
     return (jlong)imp;
@@ -413,12 +390,12 @@ JNIEXPORT jlong JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetImportModuleContex
 
 
 JNIEXPORT jlong JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetFunctionTypeRegistered
-        (JNIEnv *env, jobject thisObject, jstring jModName, jstring jFuncName) {
-    WasmEdge_VMContext * vmCxt = getVmContext(env, thisObject);
+        (JNIEnv *env, jobject thisObject, jlong vmContextPointer, jstring jModName, jstring jFuncName) {
+    WasmEdge_VMContext *vmContext = (WasmEdge_VMContext *)vmContextPointer;
     WasmEdge_String wModName = JStringToWasmString(env, jModName);
     WasmEdge_String wFuncName = JStringToWasmString(env, jFuncName);
 
-    const WasmEdge_FunctionTypeContext* functionTypeContext = WasmEdge_VMGetFunctionTypeRegistered(vmCxt, wModName, wFuncName);
+    const WasmEdge_FunctionTypeContext* functionTypeContext = WasmEdge_VMGetFunctionTypeRegistered(vmContext, wModName, wFuncName);
 
     WasmEdge_StringDelete(wModName);
     WasmEdge_StringDelete(wFuncName);
@@ -427,11 +404,10 @@ JNIEXPORT jlong JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetFunctionTypeRegist
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeRegisterModuleFromImport
-        (JNIEnv * env, jobject thisObject, jlong importObjectPointer) {
+        (JNIEnv * env, jobject thisObject, jlong vmContextPointer, jlong importObjectPointer) {
+    WasmEdge_VMContext *vmContext = (WasmEdge_VMContext *)vmContextPointer;
     WasmEdge_ImportObjectContext * impObj = (WasmEdge_ImportObjectContext *)importObjectPointer;
 
-    WasmEdge_VMContext *vm = getVmContext(env, thisObject);
-
-    WasmEdge_Result result = WasmEdge_VMRegisterModuleFromImport(vm, impObj);
+    WasmEdge_Result result = WasmEdge_VMRegisterModuleFromImport(vmContext, impObj);
     handleWasmEdgeResult(env, &result);
 }

@@ -7,12 +7,25 @@
 #include "StoreContext.h"
 #include "ConfigureContext.h"
 
-JNIEXPORT void JNICALL Java_org_wasmedge_VMContext_initNative
-        (JNIEnv * env, jobject jVmContext, jlong configContextPointer, jlong storeContextPointer) {
+JNIEXPORT jlong JNICALL Java_org_wasmedge_VMContext_initNative
+        (JNIEnv * env, jobject thisObject, jlong configContextPointer, jlong storeContextPointer) {
     WasmEdge_ConfigureContext *ConfigureContext = (WasmEdge_ConfigureContext *)configContextPointer;
     WasmEdge_StoreContext *StoreContext = (WasmEdge_StoreContext *)storeContextPointer;
 
     WasmEdge_VMContext* VMContext = WasmEdge_VMCreate(ConfigureContext, StoreContext);
 
-    setPointer(env, jVmContext, (jlong)VMContext);
+    return (jlong)VMContext;
 }
+
+JNIEXPORT void JNICALL Java_org_wasmedge_VMContext_nativeCleanup
+        (JNIEnv *env, jobject thisObject, jlong vmContextPointer) {
+    WasmEdge_VMContext *vmContext = (WasmEdge_VMContext *)vmContextPointer;
+    WasmEdge_VMCleanup(vmContext);
+}
+
+JNIEXPORT void JNICALL Java_org_wasmedge_VMContext_nativeDelete
+        (JNIEnv *env, jobject thisObject, jlong vmContextPointer) {
+    WasmEdge_VMContext *vmContext = (WasmEdge_VMContext *)vmContextPointer;
+    WasmEdge_VMDelete(vmContext);
+}
+

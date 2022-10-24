@@ -1,19 +1,28 @@
 package org.wasmedge;
 
-public class VMContext {
-    private long pointer;
+public class VMContext extends AbstractWasmEdgeContext {
+
+    protected VMContext(long pointer) {
+        super(pointer);
+    }
 
     public VMContext(ConfigureContext configContext, StoreContext storeContext) {
         initNative(configContext.getPointer(), storeContext.getPointer());
     }
 
-    public void release() {
-        this.cleanUp();
-        pointer = 0;
+    private native long initNative(long configContextPointer, long storeContextPointer);
+
+    public void cleanup() {
+        nativeCleanup(pointer);
     }
 
-    private native void initNative(long configContextPointer, long storeContextPointer);
+    private native void nativeCleanup(long vmContextPointer);
 
-    private native void cleanUp();
+    @Override
+    protected void doDelete() {
+        nativeDelete(pointer);
+    }
+
+    private native void nativeDelete(long vmContextPointer);
 
 }
