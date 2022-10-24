@@ -58,16 +58,16 @@ public class StoreContext extends AbstractWasmEdgeContext {
     private native List<String> nativeListTableRegistered(long storeContextPointer, String moduleName);
 
     public TableInstanceContext findTable(String tableName) {
-        return nativeFindTable(pointer, tableName);
+        return new TableInstanceContext(nativeFindTable(pointer, tableName));
     }
 
-    private native TableInstanceContext nativeFindTable(long storeContextPointer, String tableName);
+    private native long nativeFindTable(long storeContextPointer, String tableName);
 
     public TableInstanceContext findTableRegistered(String moduleName, String tableName) {
-        return nativeFindTableRegistered(pointer, moduleName, tableName);
+        return new TableInstanceContext(nativeFindTableRegistered(pointer, moduleName, tableName));
     }
 
-    private native TableInstanceContext nativeFindTableRegistered(long storeContextPointer, String moduleName, String tableName);
+    private native long nativeFindTableRegistered(long storeContextPointer, String moduleName, String tableName);
 
     public List<String> listMemory() {
         return nativeListMemory(pointer);

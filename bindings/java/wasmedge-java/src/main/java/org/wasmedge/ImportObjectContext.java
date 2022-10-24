@@ -49,10 +49,10 @@ public class ImportObjectContext extends AbstractWasmEdgeContext {
     private native void nativeAddFunction(long importObjectPointer, String name, long funcInstancePointer);
 
     public void addTable(String name, TableInstanceContext tableInstanceContext) {
-        nativeAddTable(pointer, name, tableInstanceContext);
+        nativeAddTable(pointer, name, tableInstanceContext.getPointer());
     }
 
-    private native void nativeAddTable(long importObjectPointer, String name, TableInstanceContext tableInstanceContext);
+    private native void nativeAddTable(long importObjectPointer, String name, long tableInstancePointer);
 
     public void addMemory(String name, MemoryInstanceContext memoryInstanceContext) {
         nativeAddMemory(pointer, name, memoryInstanceContext.getPointer());

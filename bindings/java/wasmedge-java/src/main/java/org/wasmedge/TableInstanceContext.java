@@ -2,35 +2,53 @@ package org.wasmedge;
 
 import org.wasmedge.enums.ValueType;
 
-public class TableInstanceContext {
-
-    private long pointer;
-
+public class TableInstanceContext extends AbstractWasmEdgeContext {
     private TableTypeContext tableTypeContext;
 
-    private TableInstanceContext(long pointer) {
-        this.pointer = pointer;
+    protected TableInstanceContext(long pointer) {
+        super(pointer);
     }
 
     public TableInstanceContext(TableTypeContext tableTypeContext) {
         this.tableTypeContext = tableTypeContext;
-        nativeInit(tableTypeContext);
+        initialisePointer(nativeInit(tableTypeContext.getPointer()));
     }
 
-    private native void nativeInit(TableTypeContext tableTypeContext);
+    private native long nativeInit(long tableTypePointer);
 
-    public native void delete();
+    @Override
+    protected void doDelete() {
+        nativeDelete(pointer);
+    }
+
+    private native void nativeDelete(long tableInstancePointer);
 
     public TableTypeContext getTableType() {
         return this.tableTypeContext;
     }
 
-    public native void setData(WasmEdgeValue value, int index);
+    public void setData(WasmEdgeValue value, int index) {
+        nativeSetData(pointer, value, index);
+    }
 
-    public native WasmEdgeValue getData(ValueType valueType, int offSet);
+    private native void nativeSetData(long tableInstancePointer, WasmEdgeValue value, int index);
 
-    public native int getSize();
+    public WasmEdgeValue getData(ValueType valueType, int offSet) {
+        return nativeGetData(pointer, valueType, offSet);
+    }
 
-    public native void grow(int size);
+    private native WasmEdgeValue nativeGetData(long tableInstancePointer, ValueType valueType, int offSet);
+
+    public int getSize() {
+        return getSize(pointer);
+    }
+
+    private native int getSize(long tableInstancePointer);
+
+    public void grow(int size) {
+        nativeGrow(pointer, size);
+    }
+
+    private native void nativeGrow(long tableInstancePointer, int size);
 
 }

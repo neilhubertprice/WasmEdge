@@ -38,14 +38,13 @@ JNIEXPORT jlong JNICALL Java_org_wasmedge_ExportTypeContext_nativeGetFunctionTyp
     return (jlong)functionTypeContext;
 }
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_ExportTypeContext_nativeGetTableType
+JNIEXPORT jlong JNICALL Java_org_wasmedge_ExportTypeContext_nativeGetTableType
         (JNIEnv *env, jobject thisObject, jlong exportTypePointer, jlong astmContextPointer) {
     WasmEdge_ExportTypeContext *expType = (WasmEdge_ExportTypeContext *)exportTypePointer;
     WasmEdge_ASTModuleContext *astCxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
     const WasmEdge_TableTypeContext *tableCxt = WasmEdge_ExportTypeGetTableType(astCxt, expType);
 
-    return createJTableTypeContext(env, tableCxt);
-
+    return (jlong)tableCxt;
 }
 
 JNIEXPORT jlong JNICALL Java_org_wasmedge_ExportTypeContext_nativeGetMemoryType

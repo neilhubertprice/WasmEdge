@@ -35,10 +35,10 @@ public class ImportTypeContext extends AbstractWasmEdgeContext {
     private native long nativeGetFunctionType(long importTypePointer, long astmContextPointer);
 
     public TableTypeContext getTableType() {
-        return nativeGetTableType(pointer, astCtx.getPointer());
+        return new TableTypeContext(nativeGetTableType(pointer, astCtx.getPointer()));
     }
 
-    private native TableTypeContext nativeGetTableType(long importTypePointer, long astmContextPointer);
+    private native long nativeGetTableType(long importTypePointer, long astmContextPointer);
 
     public MemoryTypeContext getMemoryType() {
         return new MemoryTypeContext(nativeGetMemoryType(pointer, astCtx.getPointer()));

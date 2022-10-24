@@ -98,32 +98,30 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_nativeListTable
     return jNameList;
 }
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_nativeFindTable
+JNIEXPORT jlong JNICALL Java_org_wasmedge_StoreContext_nativeFindTable
         (JNIEnv *env , jobject thisObject, jlong storeContextPointer, jstring jTabName) {
     WasmEdge_StoreContext *storeCxt = (WasmEdge_StoreContext *)storeContextPointer;
     WasmEdge_String wTabName = JStringToWasmString(env, jTabName);
 
-    WasmEdge_TableInstanceContext * tabInst = WasmEdge_StoreFindTable(storeCxt, wTabName);
-    jobject jTabInst = createJTableInstanceContext(env, tabInst);
+    WasmEdge_TableInstanceContext *tabInst = WasmEdge_StoreFindTable(storeCxt, wTabName);
 
     WasmEdge_StringDelete(wTabName);
 
-    return jTabInst;
+    return (jlong)tabInst;
 }
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_nativeFindTableRegistered
+JNIEXPORT jlong JNICALL Java_org_wasmedge_StoreContext_nativeFindTableRegistered
         (JNIEnv *env, jobject thisObject, jlong storeContextPointer, jstring jModName, jstring jTabName) {
     WasmEdge_StoreContext *storeCxt = (WasmEdge_StoreContext *)storeContextPointer;
     WasmEdge_String wModName = JStringToWasmString(env, jModName);
     WasmEdge_String wTabName = JStringToWasmString(env, jTabName);
 
-    WasmEdge_TableInstanceContext * tabInst = WasmEdge_StoreFindTableRegistered(storeCxt, wModName, wTabName);
-    jobject jTabInst = createJTableInstanceContext(env, tabInst);
+    WasmEdge_TableInstanceContext *tabInst = WasmEdge_StoreFindTableRegistered(storeCxt, wModName, wTabName);
 
     WasmEdge_StringDelete(wTabName);
     WasmEdge_StringDelete(wModName);
 
-    return jTabInst;
+    return (jlong)tabInst;
 }
 
 JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_nativeListTableRegistered
@@ -142,7 +140,7 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_nativeListTableRegister
     WasmEdge_StringDelete(wModName);
 
     return jNameList;
-};
+}
 
 JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_nativeListMemory
         (JNIEnv *env , jobject thisObject, jlong storeContextPointer) {
@@ -157,7 +155,7 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_nativeListMemory
     free(nameList);
 
     return jNameList;
-};
+}
 
 JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_nativeListMemoryRegistered
         (JNIEnv * env, jobject thisObject, jlong storeContextPointer, jstring jModName) {
@@ -175,7 +173,7 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_nativeListMemoryRegiste
     WasmEdge_StringDelete(wModName);
 
     return jNameList;
-};
+}
 
 JNIEXPORT jlong JNICALL Java_org_wasmedge_StoreContext_nativeFindMemory
         (JNIEnv *env , jobject thisObject, jlong storeContextPointer, jstring jMemName) {

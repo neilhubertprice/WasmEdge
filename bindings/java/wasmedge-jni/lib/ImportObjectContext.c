@@ -69,11 +69,10 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_nativeAddFunction
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_nativeAddTable
-        (JNIEnv *env, jobject thisObject, jlong importObjectPointer, jstring jTabName, jobject jTable) {
+        (JNIEnv *env, jobject thisObject, jlong importObjectPointer, jstring jTabName, jlong tableInstancePointer) {
     WasmEdge_ImportObjectContext *impObjCxt = (WasmEdge_ImportObjectContext *)importObjectPointer;
-    WasmEdge_TableInstanceContext *tabIns = getTableInstanceContext(env, jTable);
+    WasmEdge_TableInstanceContext *tabIns = (WasmEdge_TableInstanceContext *)tableInstancePointer;
     WasmEdge_ImportObjectAddTable(impObjCxt, JStringToWasmString(env, jTabName), tabIns);
-
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_nativeAddMemory
