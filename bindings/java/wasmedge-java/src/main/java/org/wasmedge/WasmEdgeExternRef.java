@@ -12,16 +12,21 @@ public class WasmEdgeExternRef<T> implements WasmEdgeValue {
         final String key = UUID.randomUUID().toString();
         this.value = key;
         WasmEdgeVM.addExternRef(key, val);
-        nativeInit(key);
+        initialisePointer(nativeInit(key));
     }
 
-    private WasmEdgeExternRef() {
-
+    protected void initialisePointer(long pointer) {
+        this.pointer = pointer;
+        validatePointer(pointer);
     }
 
-    private native void nativeInit(String key);
+    private void validatePointer(final long pointer) {
+        if (pointer == 0) {
+            throw new WasmEdgeException("Null WasmEdgeExternRef pointer");
+        }
+    }
 
-    private native String nativeGetKey();
+    private native long nativeInit(String key);
 
     public String getValue() {
         return value;
@@ -39,7 +44,5 @@ public class WasmEdgeExternRef<T> implements WasmEdgeValue {
     public ValueType getType() {
         return ValueType.ExternRef;
     }
-
-    public native void delete();
 
 }
