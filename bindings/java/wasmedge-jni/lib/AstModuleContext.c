@@ -27,23 +27,27 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_ASTModuleContext_nativeListImports
     return importList;
 }
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_ASTModuleContext_nativeListExports
+JNIEXPORT jlongArray JNICALL Java_org_wasmedge_ASTModuleContext_nativeListExports
         (JNIEnv *env, jobject thisObject, jlong astmContextPointer) {
     WasmEdge_ASTModuleContext *cxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
     uint32_t len = WasmEdge_ASTModuleListExportsLength(cxt);
 
-    const WasmEdge_ExportTypeContext ** pEdgeExportTypeContext= malloc(sizeof(struct  WasmEdge_ExportTypeContext *) * len);
+    const WasmEdge_ExportTypeContext **pExportTypeContext= malloc(sizeof(struct  WasmEdge_ExportTypeContext *) * len);
 
-    WasmEdge_ASTModuleListExports(cxt, pEdgeExportTypeContext, len);
+    WasmEdge_ASTModuleListExports(cxt, pExportTypeContext, len);
 
-    jobject exportList = CreateJavaArrayList(env, len);
+    jlongArray exportTypeArray = (*env)->NewLongArray(env, len);
+    long *exportTypeData = (*env)->GetLongArrayElements(env, exportTypeArray, NULL);
+
     for (int i = 0; i < len; ++i) {
-       AddElementToJavaList(env, exportList, createExportTypeContext(env, pEdgeExportTypeContext[i], thisObject));
+        exportTypeData[i] = (jlong)pExportTypeContext[i];
     }
 
-    free(pEdgeExportTypeContext);
+    (*env)->ReleaseLongArrayElements(env, exportTypeArray, exportTypeData, 0);
 
-    return exportList;
+    free(pExportTypeContext);
+
+    return exportTypeArray;
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_ASTModuleContext_nativeDelete

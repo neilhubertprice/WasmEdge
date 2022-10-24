@@ -1,5 +1,6 @@
 package org.wasmedge;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ASTModuleContext extends AbstractWasmEdgeContext {
@@ -21,8 +22,15 @@ public class ASTModuleContext extends AbstractWasmEdgeContext {
     private native List<ImportTypeContext> nativeListImports(long astmContextPointer);
 
     public List<ExportTypeContext> listExports() {
-        return nativeListExports(pointer);
+        long[] exportTypePointers = nativeListExports(pointer);
+
+        List<ExportTypeContext> exportTypeContexts = new ArrayList<>(exportTypePointers.length);
+        for (int i = 0; i < exportTypePointers.length; i++) {
+            exportTypeContexts.add(new ExportTypeContext(exportTypePointers[i], this));
+        }
+
+        return exportTypeContexts;
     }
 
-    private native List<ExportTypeContext> nativeListExports(long astmContextPointer);
+    private native long[] nativeListExports(long astmContextPointer);
 }

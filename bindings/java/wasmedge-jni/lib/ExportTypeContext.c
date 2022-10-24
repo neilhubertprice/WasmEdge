@@ -12,103 +12,57 @@
 #include "TableTypeContext.h"
 #include "common.h"
 
-WasmEdge_ExportTypeContext *getExportTypeContext(JNIEnv * env, jobject jExpType) {
-    if(jExpType == NULL) {
-        return NULL;
-    }
 
-    return (WasmEdge_ExportTypeContext *)getPointer(env, jExpType);
-}
-
-JNIEXPORT jstring JNICALL Java_org_wasmedge_ExportTypeContext_getModuleName
-        (JNIEnv *env, jobject thisObject) {
-    // TODO
-    return NULL;
-}
-
-/*
- * Class:     org_wasmedge_ExportTypeContext
- * Method:    getExternalName
- * Signature: ()Ljava/lang/String;
- */
 JNIEXPORT jstring JNICALL Java_org_wasmedge_ExportTypeContext_getExternalName
-        (JNIEnv *env, jobject thisObject) {
-    WasmEdge_ExportTypeContext *expType = getExportTypeContext(env, thisObject);
+        (JNIEnv *env, jobject thisObject, jlong exportTypePointer) {
+    WasmEdge_ExportTypeContext *expType = (WasmEdge_ExportTypeContext *)exportTypePointer;
 
     WasmEdge_String wName = WasmEdge_ExportTypeGetExternalName(expType);
 
     return WasmEdgeStringToJString(env, wName);
-
 }
 
-/*
- * Class:     org_wasmedge_ExportTypeContext
- * Method:    getExternalType
- * Signature: ()Lorg/wasmedge/enums/ExternalType;
- */
 JNIEXPORT jint JNICALL Java_org_wasmedge_ExportTypeContext_nativeGetExternalType
-        (JNIEnv * env, jobject thisObject) {
-   WasmEdge_ExportTypeContext *expType = getExportTypeContext(env, thisObject);
+        (JNIEnv * env, jobject thisObject, jlong exportTypePointer) {
+   WasmEdge_ExportTypeContext *expType = (WasmEdge_ExportTypeContext *)exportTypePointer;
 
     enum WasmEdge_ExternalType type = WasmEdge_ExportTypeGetExternalType(expType);
     return type;
 }
 
 JNIEXPORT jlong JNICALL Java_org_wasmedge_ExportTypeContext_nativeGetFunctionType
-        (JNIEnv *env, jobject thisObject, jlong astmContextPointer) {
-    WasmEdge_ExportTypeContext  *expType = getExportTypeContext(env, thisObject);
+        (JNIEnv *env, jobject thisObject, jlong exportTypePointer, jlong astmContextPointer) {
+    WasmEdge_ExportTypeContext  *expType = (WasmEdge_ExportTypeContext *)exportTypePointer;
     WasmEdge_ASTModuleContext  *astCxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
     const WasmEdge_FunctionTypeContext *functionTypeContext =  WasmEdge_ExportTypeGetFunctionType(astCxt, expType);
     return (jlong)functionTypeContext;
 }
 
-/*
- * Class:     org_wasmedge_ExportTypeContext
- * Method:    getTableType
- * Signature: ()Lorg/wasmedge/TableTypeContext;
- */
 JNIEXPORT jobject JNICALL Java_org_wasmedge_ExportTypeContext_nativeGetTableType
-        (JNIEnv *env, jobject thisObject, jlong astmContextPointer) {
-    WasmEdge_ExportTypeContext  *expType = getExportTypeContext(env, thisObject);
+        (JNIEnv *env, jobject thisObject, jlong exportTypePointer, jlong astmContextPointer) {
+    WasmEdge_ExportTypeContext  *expType = (WasmEdge_ExportTypeContext *)exportTypePointer;
     WasmEdge_ASTModuleContext  *astCxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
     const WasmEdge_TableTypeContext *tableCxt = WasmEdge_ExportTypeGetTableType(astCxt, expType);
 
     return createJTableTypeContext(env, tableCxt);
 
 }
-/*
- * Class:     org_wasmedge_ExportTypeContext
- * Method:    getMemoryType
- * Signature: ()Lorg/wasmedge/MemoryTypeContext;
- */
+
 JNIEXPORT jobject JNICALL Java_org_wasmedge_ExportTypeContext_nativeGetMemoryType
-        (JNIEnv *env, jobject thisObject, jlong astmContextPointer) {
-    WasmEdge_ExportTypeContext  *expType = getExportTypeContext(env, thisObject);
+        (JNIEnv *env, jobject thisObject, jlong exportTypePointer, jlong astmContextPointer) {
+    WasmEdge_ExportTypeContext  *expType = (WasmEdge_ExportTypeContext *)exportTypePointer;
     WasmEdge_ASTModuleContext  *astCxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
 
     const WasmEdge_MemoryTypeContext *memCxt = WasmEdge_ExportTypeGetMemoryType(astCxt, expType);
     return createJMemoryTypeContext(env, memCxt);
 }
-/*
- * Class:     org_wasmedge_ExportTypeContext
- * Method:    getGlobalType
- * Signature: ()Lorg/wasmedge/GlobalTypeContext;
- */
+
 JNIEXPORT jobject JNICALL Java_org_wasmedge_ExportTypeContext_nativeGetGlobalType
-        (JNIEnv *env, jobject thisObject, jlong astmContextPointer) {
-    WasmEdge_ExportTypeContext  *expType = getExportTypeContext(env, thisObject);
+        (JNIEnv *env, jobject thisObject, jlong exportTypePointer, jlong astmContextPointer) {
+    WasmEdge_ExportTypeContext  *expType = (WasmEdge_ExportTypeContext *)exportTypePointer;
     WasmEdge_ASTModuleContext  *astCxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
 
     const WasmEdge_GlobalTypeContext *globalCxt = WasmEdge_ExportTypeGetGlobalType(astCxt,expType);
 
     return createJGlobalTypeContext(env, globalCxt);
 }
-
-jobject createExportTypeContext(JNIEnv * env, const WasmEdge_ExportTypeContext * cxt, jobject jAstMod) {
-
-    jclass cls = findJavaClass(env, "org/wasmedge/ExportTypeContext");
-    jmethodID constructor = findJavaMethod(env, cls, "<init>", "(JLorg/wasmedge/ASTModuleContext;)V");
-    jobject obj = (*env)->NewObject(env, cls, constructor, (long)cxt, jAstMod);
-    return obj;
-}
-
