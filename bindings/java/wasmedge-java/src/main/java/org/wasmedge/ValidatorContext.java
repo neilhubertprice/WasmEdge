@@ -1,19 +1,23 @@
 package org.wasmedge;
 
-public class ValidatorContext {
-    private long pointer;
+public class ValidatorContext extends AbstractWasmEdgeContext {
 
     public ValidatorContext(ConfigureContext configureContext) {
-        nativeInit(configureContext.getPointer());
+        initialisePointer(nativeInit(configureContext.getPointer()));
     }
+
+    private native long nativeInit(long configureContextPointer);
 
     public void validate(ASTModuleContext astCtx) {
-        nativeValidate(astCtx.getPointer());
+        nativeValidate(pointer, astCtx.getPointer());
     }
 
-    private native void nativeValidate(long astmContextPointer);
+    private native void nativeValidate(long validatorContextPointer, long astmContextPointer);
 
-    private native void nativeInit(long configureContextPointer);
+    @Override
+    protected void doDelete() {
+        nativeDelete(pointer);
+    }
 
-    public native void delete();
+    private native void nativeDelete(long validatorContextPointer);
 }
