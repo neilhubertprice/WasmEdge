@@ -5,27 +5,18 @@
 #include "ConfigureContext.h"
 #include "common.h"
 
-WasmEdge_CompilerContext * getCompilerContext(JNIEnv* env, jobject jCompilerContext) {
-    if(jCompilerContext == NULL) {
-        return NULL;
-    }
-    return (WasmEdge_CompilerContext *)getPointer(env, jCompilerContext);
-}
-
-JNIEXPORT void JNICALL Java_org_wasmedge_CompilerContext_nativeInit
+JNIEXPORT jlong JNICALL Java_org_wasmedge_CompilerContext_nativeInit
         (JNIEnv * env, jobject thisObject, jlong configContextPointer) {
     WasmEdge_ConfigureContext *configureContext = (WasmEdge_ConfigureContext *)configContextPointer;
 
     WasmEdge_CompilerContext* compilerContext =  WasmEdge_CompilerCreate(configureContext);
 
-    setPointer(env, thisObject, (long)compilerContext);
+    return (jlong)compilerContext;
 }
 
-
-JNIEXPORT void JNICALL Java_org_wasmedge_CompilerContext_compile
-        (JNIEnv * env, jobject thisObject, jstring jInputPath, jstring jOutputPath) {
-    WasmEdge_CompilerContext * compilerContext = getCompilerContext(env, thisObject);
-
+JNIEXPORT void JNICALL Java_org_wasmedge_CompilerContext_nativeCompile
+        (JNIEnv * env, jobject thisObject, jlong compilerContextPointer, jstring jInputPath, jstring jOutputPath) {
+    WasmEdge_CompilerContext *compilerContext = (WasmEdge_CompilerContext *)compilerContextPointer;
 
     const char* inputPath = (*env)->GetStringUTFChars(env, jInputPath, NULL);
     const char* outputPath = (*env)->GetStringUTFChars(env, jOutputPath, NULL);
@@ -38,9 +29,9 @@ JNIEXPORT void JNICALL Java_org_wasmedge_CompilerContext_compile
     handleWasmEdgeResult(env, &result);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_CompilerContext_delete
-        (JNIEnv * env, jobject thisObject) {
-    WasmEdge_CompilerContext * compilerContext = getCompilerContext(env, thisObject);
+JNIEXPORT void JNICALL Java_org_wasmedge_CompilerContext_nativeDelete
+        (JNIEnv * env, jobject thisObject, jlong compilerContextPointer) {
+    WasmEdge_CompilerContext *compilerContext = (WasmEdge_CompilerContext *)compilerContextPointer;
     WasmEdge_CompilerDelete(compilerContext);
 }
 

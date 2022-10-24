@@ -1,14 +1,23 @@
 package org.wasmedge;
 
-public class CompilerContext {
-    private long pointer;
+public class CompilerContext extends AbstractWasmEdgeContext {
 
     public CompilerContext(ConfigureContext configureContext) {
-        nativeInit(configureContext.getPointer());
+        initialisePointer(nativeInit(configureContext.getPointer()));
     }
-    private native void nativeInit(long configureContextPointer);
 
-    public native void compile(String inputPath, String outputPath);
+    private native long nativeInit(long configureContextPointer);
 
-    public native void delete();
+    public void compile(String inputPath, String outputPath) {
+        nativeCompile(pointer, inputPath, outputPath);
+    }
+
+    private native void nativeCompile(long compilerContextPointer, String inputPath, String outputPath);
+
+    @Override
+    protected void doDelete() {
+        nativeDelete(pointer);
+    }
+
+    private native void nativeDelete(long compilerContextPointer);
 }
