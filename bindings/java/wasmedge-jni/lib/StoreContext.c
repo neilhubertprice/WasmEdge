@@ -177,21 +177,20 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_nativeListMemoryRegiste
     return jNameList;
 };
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_nativeFindMemory
+JNIEXPORT jlong JNICALL Java_org_wasmedge_StoreContext_nativeFindMemory
         (JNIEnv *env , jobject thisObject, jlong storeContextPointer, jstring jMemName) {
     WasmEdge_StoreContext* storeCxt = (WasmEdge_StoreContext *)storeContextPointer;
 
     WasmEdge_String wMemName = JStringToWasmString(env, jMemName);
 
-    WasmEdge_MemoryInstanceContext * memInst = WasmEdge_StoreFindMemory(storeCxt, wMemName);
-    jobject jMemInst = createJMemoryInstanceContext(env, memInst);
-
+    WasmEdge_MemoryInstanceContext *memInst = WasmEdge_StoreFindMemory(storeCxt, wMemName);
+ 
     WasmEdge_StringDelete(wMemName);
 
-    return jMemInst;
+    return (jlong)memInst;
 }
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_nativeFindMemoryRegistered
+JNIEXPORT jlong JNICALL Java_org_wasmedge_StoreContext_nativeFindMemoryRegistered
         (JNIEnv *env, jobject thisObject, jlong storeContextPointer, jstring jModName, jstring jMemName) {
     WasmEdge_StoreContext* storeCxt = (WasmEdge_StoreContext *)storeContextPointer;
 
@@ -199,13 +198,11 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_nativeFindMemoryRegiste
     WasmEdge_String wMemName = JStringToWasmString(env, jMemName);
 
     WasmEdge_MemoryInstanceContext * memInst = WasmEdge_StoreFindMemoryRegistered(storeCxt, wModName, wMemName);
-    jobject jMemInst = createJMemoryInstanceContext(env, memInst);
 
     WasmEdge_StringDelete(wMemName);
     WasmEdge_StringDelete(wModName);
 
-    return jMemInst;
-
+    return (jlong)memInst;
 }
 
 JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_nativeListGlobal

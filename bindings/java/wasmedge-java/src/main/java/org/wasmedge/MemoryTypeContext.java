@@ -1,21 +1,33 @@
 package org.wasmedge;
 
-public class MemoryTypeContext {
-    private long pointer;
+public class MemoryTypeContext extends AbstractWasmEdgeContext {
     private WasmEdgeLimit limit;
 
-    private MemoryTypeContext(long pointer) {
-        this.pointer = pointer;
+    protected MemoryTypeContext(long pointer) {
+        super(pointer);
     }
 
     public MemoryTypeContext(WasmEdgeLimit limit) {
         this.limit = limit;
-        nativeInit(limit.isHasMax(), limit.getMin(), limit.getMax());
+        initialisePointer(nativeInit(limit.isHasMax(), limit.getMin(), limit.getMax()));
     }
 
-    public native WasmEdgeLimit getLimit();
+    private native long nativeInit(boolean hasMax, long min, long max);
 
-    private native void nativeInit(boolean hasMax, long min, long max);
+    public WasmEdgeLimit getLimit() {
+        if (limit == null) {
+            limit = nativeGetLimit(pointer);
+        }
 
-    public native void delete();
+        return limit;
+    }
+
+    private native WasmEdgeLimit nativeGetLimit(long memoryTypePointer);
+
+    @Override
+    protected void doDelete() {
+        nativeDelete(pointer);
+    }
+
+    private native void nativeDelete(long memoryTypePointer);
 }

@@ -55,13 +55,13 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetTableType
     return createJTableTypeContext(env, tableCxt);
 }
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetMemoryType
+JNIEXPORT jlong JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetMemoryType
         (JNIEnv *env, jobject thisObject, jlong importTypePointer, jlong astmContextPointer) {
     WasmEdge_ImportTypeContext *impType = (WasmEdge_ImportTypeContext *)importTypePointer;
     WasmEdge_ASTModuleContext *astCxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
 
     const WasmEdge_MemoryTypeContext *memCxt = WasmEdge_ImportTypeGetMemoryType(astCxt, impType);
-    return createJMemoryTypeContext(env, memCxt);
+    return (jlong)memCxt;
 }
 
 JNIEXPORT jlong JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetGlobalType

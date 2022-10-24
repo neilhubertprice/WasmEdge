@@ -10,7 +10,7 @@
 #include "MemoryInstanceContext.h"
 #include "ValueType.h"
 
-WasmEdge_Result HostFuncWrap(void *This, void* Data, WasmEdge_MemoryInstanceContext * Mem,
+WasmEdge_Result HostFuncWrap(void *This, void* Data, WasmEdge_MemoryInstanceContext *Mem,
                          const WasmEdge_Value *In, const uint32_t InLen, WasmEdge_Value *Out, const uint32_t OutLen) {
 
     HostFuncParam * param = (HostFuncParam*)This;

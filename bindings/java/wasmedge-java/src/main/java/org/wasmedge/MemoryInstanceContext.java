@@ -1,30 +1,47 @@
 package org.wasmedge;
 
-public class MemoryInstanceContext {
-
-    private long pointer;
-
+public class MemoryInstanceContext extends AbstractWasmEdgeContext {
     private MemoryTypeContext memoryTypeContext;
 
-    private MemoryInstanceContext(long pointer) {
-        this.pointer = pointer;
+    protected MemoryInstanceContext(long pointer) {
+        super(pointer);
     }
 
     public MemoryInstanceContext(MemoryTypeContext memoryTypeContext) {
         this.memoryTypeContext = memoryTypeContext;
-        nativeInit(memoryTypeContext);
+        initialisePointer(nativeInit(memoryTypeContext.getPointer()));
     }
 
+    private native long nativeInit(long memoryTypePointer);
 
-    private native void nativeInit(MemoryTypeContext memoryTypeContext);
+    public void setData(byte[] data, int offSet, int length) {
+        nativeSetData(pointer, data, offSet, length);
+    }
 
-    public native void setData(byte[] data, int offSet, int length);
+    private native void nativeSetData(long memoryInstancePointer, byte[] data, int offSet, int length);
 
-    public native byte[] getData(int offSet, int length);
+    public byte[] getData(int offSet, int length) {
+        return nativeGetData(pointer, offSet, length);
+    }
 
-    public native int getPageSize();
+    private native byte[] nativeGetData(long memoryInstancePointer, int offSet, int length);
 
-    public native void growPage(int size);
+    public int getPageSize() {
+        return nativeGetPageSize(pointer);
+    }
 
-    public native void delete();
+    private native int nativeGetPageSize(long memoryInstancePointer);
+
+    public void growPage(int size) {
+        nativeGrowPage(pointer, size);
+    }
+
+    private native void nativeGrowPage(long memoryInstancePointer, int size);
+
+    @Override
+    protected void doDelete() {
+        nativeDelete(pointer);
+    }
+
+    private native void nativeDelete(long memoryInstancePointer);
 }

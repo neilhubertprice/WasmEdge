@@ -82,16 +82,16 @@ public class StoreContext extends AbstractWasmEdgeContext {
     private native List<String> nativeListMemoryRegistered(long storeContextPointer, String moduleName);
 
     public MemoryInstanceContext findMemory(String memoryName) {
-        return nativeFindMemory(pointer, memoryName);
+        return new MemoryInstanceContext(nativeFindMemory(pointer, memoryName));
     }
 
-    private native MemoryInstanceContext nativeFindMemory(long storeContextPointer, String memoryName);
+    private native long nativeFindMemory(long storeContextPointer, String memoryName);
 
     public MemoryInstanceContext findMemoryRegistered(String moduleName, String memoryName) {
-        return nativeFindMemoryRegistered(pointer, moduleName, memoryName);
+        return new MemoryInstanceContext(nativeFindMemoryRegistered(pointer, moduleName, memoryName));
     }
 
-    private native MemoryInstanceContext nativeFindMemoryRegistered(long storeContextPointer, String moduleName, String memoryName);
+    private native long nativeFindMemoryRegistered(long storeContextPointer, String moduleName, String memoryName);
 
     public List<String> listGlobal() {
         return nativeListGlobal(pointer);
