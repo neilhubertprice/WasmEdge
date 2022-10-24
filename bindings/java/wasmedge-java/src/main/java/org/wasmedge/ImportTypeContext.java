@@ -2,48 +2,58 @@ package org.wasmedge;
 
 import org.wasmedge.enums.ExternalType;
 
-public class ImportTypeContext {
+public class ImportTypeContext extends AbstractWasmEdgeContext {
     private final ASTModuleContext astCtx;
 
-    private final long pointer;
-
-    private ImportTypeContext(long pointer, ASTModuleContext astCtx) {
-        this.pointer = pointer;
+    protected ImportTypeContext(long pointer, ASTModuleContext astCtx) {
+        super(pointer);
         this.astCtx = astCtx;
     }
 
-    public native String getModuleName();
+    public String getModuleName() {
+        return nativeGetModuleName(pointer);
+    }
 
-    public native String getExternalName();
+    private native String nativeGetModuleName(long importTypePointer);
+
+    public String getExternalName() {
+        return nativeGetExternalName(pointer);
+    }
+
+    private native String nativeGetExternalName(long importTypePointer);
 
     public ExternalType getExternalType() {
-        return ExternalType.getByValue(nativeGetExternalType());
+        return ExternalType.getByValue(nativeGetExternalType(pointer));
     }
 
-    private native int nativeGetExternalType();
+    private native int nativeGetExternalType(long importTypePointer);
 
     public FunctionTypeContext getFunctionType() {
-        return new FunctionTypeContext(nativeGetFunctionType(astCtx.getPointer()), null);
+        return new FunctionTypeContext(nativeGetFunctionType(pointer, astCtx.getPointer()), null);
     }
 
-    private native long nativeGetFunctionType(long astmContextPointer);
+    private native long nativeGetFunctionType(long importTypePointer, long astmContextPointer);
 
     public TableTypeContext getTableType() {
-        return nativeGetTableType(astCtx.getPointer());
+        return nativeGetTableType(pointer, astCtx.getPointer());
     }
 
-    private native TableTypeContext nativeGetTableType(long astmContextPointer);
+    private native TableTypeContext nativeGetTableType(long importTypePointer, long astmContextPointer);
 
     public MemoryTypeContext getMemoryType() {
-        return nativeGetMemoryType(astCtx.getPointer());
+        return nativeGetMemoryType(pointer, astCtx.getPointer());
     }
 
-    private native MemoryTypeContext nativeGetMemoryType(long astmContextPointer);
+    private native MemoryTypeContext nativeGetMemoryType(long importTypePointer, long astmContextPointer);
 
     public GlobalTypeContext getGlobalType() {
-        return new GlobalTypeContext(nativeGetGlobalType(astCtx.getPointer()));
+        return new GlobalTypeContext(nativeGetGlobalType(pointer, astCtx.getPointer()));
     }
 
-    private native long nativeGetGlobalType(long astmContextPointer);
+    private native long nativeGetGlobalType(long importTypePointer, long astmContextPointer);
 
+    @Override
+    protected void doDelete() {
+        throw new WasmEdgeException("Delete operation not supported on ImportTypeContext");
+    }
 }

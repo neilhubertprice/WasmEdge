@@ -8,23 +8,27 @@
 #include "ExportTypeContext.h"
 #include "ImportTypeContext.h"
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_ASTModuleContext_nativeListImports
+JNIEXPORT jlongArray JNICALL Java_org_wasmedge_ASTModuleContext_nativeListImports
         (JNIEnv * env, jobject thisObject, jlong astmContextPointer) {
     WasmEdge_ASTModuleContext *cxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
     uint32_t len = WasmEdge_ASTModuleListImportsLength(cxt);
 
-    const WasmEdge_ImportTypeContext **pEdgeImportTypeContext = malloc(sizeof(struct  WasmEdge_ImportTypeContext *) * len);
+    const WasmEdge_ImportTypeContext **pImportTypeContext = malloc(sizeof(struct WasmEdge_ImportTypeContext *) * len);
 
-    WasmEdge_ASTModuleListImports(cxt, pEdgeImportTypeContext, len);
+    WasmEdge_ASTModuleListImports(cxt, pImportTypeContext, len);
 
-    jobject importList = CreateJavaArrayList(env, len);
+    jlongArray importTypeArray = (*env)->NewLongArray(env, len);
+    long *importTypeData = (*env)->GetLongArrayElements(env, importTypeArray, NULL);
+
     for (int i = 0; i < len; ++i) {
-        AddElementToJavaList(env, importList, createImportTypeContext(env, pEdgeImportTypeContext[i], thisObject));
+        importTypeData[i] = (jlong)pImportTypeContext[i];
     }
 
-    free(pEdgeImportTypeContext);
+    (*env)->ReleaseLongArrayElements(env, importTypeArray, importTypeData, 0);
 
-    return importList;
+    free(pImportTypeContext);
+
+    return importTypeArray;
 }
 
 JNIEXPORT jlongArray JNICALL Java_org_wasmedge_ASTModuleContext_nativeListExports
@@ -32,7 +36,7 @@ JNIEXPORT jlongArray JNICALL Java_org_wasmedge_ASTModuleContext_nativeListExport
     WasmEdge_ASTModuleContext *cxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
     uint32_t len = WasmEdge_ASTModuleListExportsLength(cxt);
 
-    const WasmEdge_ExportTypeContext **pExportTypeContext= malloc(sizeof(struct  WasmEdge_ExportTypeContext *) * len);
+    const WasmEdge_ExportTypeContext **pExportTypeContext= malloc(sizeof(struct WasmEdge_ExportTypeContext *) * len);
 
     WasmEdge_ASTModuleListExports(cxt, pExportTypeContext, len);
 

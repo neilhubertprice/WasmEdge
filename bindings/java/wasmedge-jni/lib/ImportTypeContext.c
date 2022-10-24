@@ -12,83 +12,64 @@
 #include "TableTypeContext.h"
 #include "common.h"
 
-WasmEdge_ImportTypeContext *getImportTypeContext(JNIEnv * env, jobject jExpType) {
-    if(jExpType == NULL) {
-        return NULL;
-    }
 
-    return (WasmEdge_ImportTypeContext *)getPointer(env, jExpType);
-}
-
-JNIEXPORT jstring JNICALL Java_org_wasmedge_ImportTypeContext_getModuleName
-        (JNIEnv *env, jobject thisObject) {
-
-    WasmEdge_ImportTypeContext * impType = getImportTypeContext(env, thisObject);
+JNIEXPORT jstring JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetModuleName
+        (JNIEnv *env, jobject thisObject, jlong importTypePointer) {
+    WasmEdge_ImportTypeContext *impType = (WasmEdge_ImportTypeContext *)importTypePointer;
 
     WasmEdge_String wModName = WasmEdge_ImportTypeGetModuleName(impType);
     return WasmEdgeStringToJString(env, wModName);
 }
 
-JNIEXPORT jstring JNICALL Java_org_wasmedge_ImportTypeContext_getExternalName
-        (JNIEnv *env, jobject thisObject) {
-    WasmEdge_ImportTypeContext *expType = getImportTypeContext(env, thisObject);
+JNIEXPORT jstring JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetExternalName
+        (JNIEnv *env, jobject thisObject, jlong importTypePointer) {
+    WasmEdge_ImportTypeContext *impType = (WasmEdge_ImportTypeContext *)importTypePointer;
 
-    WasmEdge_String wName = WasmEdge_ImportTypeGetExternalName(expType);
+    WasmEdge_String wName = WasmEdge_ImportTypeGetExternalName(impType);
 
     return WasmEdgeStringToJString(env, wName);
-
 }
 
 JNIEXPORT jint JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetExternalType
-        (JNIEnv * env, jobject thisObject) {
-   WasmEdge_ImportTypeContext *expType = getImportTypeContext(env, thisObject);
+        (JNIEnv * env, jobject thisObject, jlong importTypePointer) {
+   WasmEdge_ImportTypeContext *impType = (WasmEdge_ImportTypeContext *)importTypePointer;
 
-    enum WasmEdge_ExternalType type = WasmEdge_ImportTypeGetExternalType(expType);
+    enum WasmEdge_ExternalType type = WasmEdge_ImportTypeGetExternalType(impType);
     return type;
 }
 
 JNIEXPORT jlong JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetFunctionType
-        (JNIEnv *env, jobject thisObject, jlong astmContextPointer) {
-    WasmEdge_ImportTypeContext  *expType = getImportTypeContext(env, thisObject);
-    WasmEdge_ASTModuleContext  *astCxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
-    const WasmEdge_FunctionTypeContext *functionTypeContext = WasmEdge_ImportTypeGetFunctionType(astCxt, expType);
+        (JNIEnv *env, jobject thisObject, jlong importTypePointer, jlong astmContextPointer) {
+    WasmEdge_ImportTypeContext *impType = (WasmEdge_ImportTypeContext *)importTypePointer;
+    WasmEdge_ASTModuleContext *astCxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
+    const WasmEdge_FunctionTypeContext *functionTypeContext = WasmEdge_ImportTypeGetFunctionType(astCxt, impType);
     return (jlong)functionTypeContext;
 }
 
 JNIEXPORT jobject JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetTableType
-        (JNIEnv *env, jobject thisObject, jlong astmContextPointer) {
-    WasmEdge_ImportTypeContext  *expType = getImportTypeContext(env, thisObject);
-    WasmEdge_ASTModuleContext  *astCxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
-    const WasmEdge_TableTypeContext *tableCxt = WasmEdge_ImportTypeGetTableType(astCxt, expType);
+        (JNIEnv *env, jobject thisObject, jlong importTypePointer, jlong astmContextPointer) {
+    WasmEdge_ImportTypeContext *impType = (WasmEdge_ImportTypeContext *)importTypePointer;
+    WasmEdge_ASTModuleContext *astCxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
+    const WasmEdge_TableTypeContext *tableCxt = WasmEdge_ImportTypeGetTableType(astCxt, impType);
 
     return createJTableTypeContext(env, tableCxt);
-
 }
 
 JNIEXPORT jobject JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetMemoryType
-        (JNIEnv *env, jobject thisObject, jlong astmContextPointer) {
-    WasmEdge_ImportTypeContext  *expType = getImportTypeContext(env, thisObject);
-    WasmEdge_ASTModuleContext  *astCxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
+        (JNIEnv *env, jobject thisObject, jlong importTypePointer, jlong astmContextPointer) {
+    WasmEdge_ImportTypeContext *impType = (WasmEdge_ImportTypeContext *)importTypePointer;
+    WasmEdge_ASTModuleContext *astCxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
 
-    const WasmEdge_MemoryTypeContext *memCxt = WasmEdge_ImportTypeGetMemoryType(astCxt, expType);
+    const WasmEdge_MemoryTypeContext *memCxt = WasmEdge_ImportTypeGetMemoryType(astCxt, impType);
     return createJMemoryTypeContext(env, memCxt);
 }
 
 JNIEXPORT jlong JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetGlobalType
-        (JNIEnv *env, jobject thisObject, jlong astmContextPointer) {
-    WasmEdge_ImportTypeContext  *impType = getImportTypeContext(env, thisObject);
-    WasmEdge_ASTModuleContext  *astCxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
+        (JNIEnv *env, jobject thisObject, jlong importTypePointer, jlong astmContextPointer) {
+    WasmEdge_ImportTypeContext *impType = (WasmEdge_ImportTypeContext *)importTypePointer;
+    WasmEdge_ASTModuleContext *astCxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
 
     const WasmEdge_GlobalTypeContext *globalCxt = WasmEdge_ImportTypeGetGlobalType(astCxt, impType);
 
     return (jlong)globalCxt;
 }
-
-jobject createImportTypeContext(JNIEnv * env, const WasmEdge_ImportTypeContext * cxt, jobject jAstMod) {
-
-    jclass cls = findJavaClass(env, "org/wasmedge/ImportTypeContext");
-    jmethodID constructor = findJavaMethod(env, cls, "<init>", "(JLorg/wasmedge/ASTModuleContext;)V");
-    jobject obj = (*env)->NewObject(env, cls, constructor, (long)cxt, jAstMod);
-    return obj;
-}
-

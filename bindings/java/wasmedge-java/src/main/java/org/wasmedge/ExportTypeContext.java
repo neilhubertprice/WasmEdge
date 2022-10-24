@@ -6,7 +6,7 @@ public class ExportTypeContext extends AbstractWasmEdgeContext {
     private final ASTModuleContext astCtx;
 
     protected ExportTypeContext(long pointer, ASTModuleContext astCtx) {
-        this.pointer = pointer;
+        super(pointer);
         this.astCtx = astCtx;
     }
 

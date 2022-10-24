@@ -16,10 +16,17 @@ public class ASTModuleContext extends AbstractWasmEdgeContext {
     private native void nativeDelete(long astmContextPointer);
 
     public List<ImportTypeContext> listImports() {
-        return nativeListImports(pointer);
+        long[] importTypePointers = nativeListImports(pointer);
+
+        List<ImportTypeContext> importTypeContexts = new ArrayList<>(importTypePointers.length);
+        for (int i = 0; i < importTypePointers.length; i++) {
+            importTypeContexts.add(new ImportTypeContext(importTypePointers[i], this));
+        }
+
+        return importTypeContexts;
     }
 
-    private native List<ImportTypeContext> nativeListImports(long astmContextPointer);
+    private native long[] nativeListImports(long astmContextPointer);
 
     public List<ExportTypeContext> listExports() {
         long[] exportTypePointers = nativeListExports(pointer);
