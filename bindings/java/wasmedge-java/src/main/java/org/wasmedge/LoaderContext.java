@@ -1,25 +1,29 @@
 package org.wasmedge;
 
-public class LoaderContext {
-    private long pointer;
+public class LoaderContext extends AbstractWasmEdgeContext {
 
     public LoaderContext(ConfigureContext configureContext) {
-        nativeInit(configureContext.getPointer());
+        initialisePointer(nativeInit(configureContext.getPointer()));
     }
 
-    private native void nativeInit(long configureContextPointer);
+    private native long nativeInit(long configureContextPointer);
 
     public ASTModuleContext parseFromFile(String path) {
-        return new ASTModuleContext(nativeParseFromFile(path));
+        return new ASTModuleContext(nativeParseFromFile(pointer, path));
     }
 
-    private native long nativeParseFromFile(String path);
+    private native long nativeParseFromFile(long loaderContextPointer, String path);
 
     public ASTModuleContext parseFromBuffer(byte[] buf, int bufSize) {
-        return new ASTModuleContext(nativeParseFromBuffer(buf, bufSize));
+        return new ASTModuleContext(nativeParseFromBuffer(pointer, buf, bufSize));
     }
 
-    private native long nativeParseFromBuffer(byte[] buf, int bufSize);
+    private native long nativeParseFromBuffer(long loaderContextPointer, byte[] buf, int bufSize);
 
-    public native void delete();
+    @Override
+    protected void doDelete() {
+        nativeDelete(pointer);
+    }
+
+    private native void nativeDelete(long loaderContextPointer);
 }
