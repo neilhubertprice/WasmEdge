@@ -54,10 +54,10 @@ public class ExecutorContext extends AbstractWasmEdgeContext {
                                              String moduleName);
 
     public void registerImport(StoreContext storeCxt, ImportObjectContext importObjectContext) {
-        nativeRegisterImport(pointer, storeCxt.getPointer(), importObjectContext);
+        nativeRegisterImport(pointer, storeCxt.getPointer(), importObjectContext.getPointer());
     }
 
-    private native void nativeRegisterImport(long executorContextPointer, long storeContextPointer, ImportObjectContext importObjectContext);
+    private native void nativeRegisterImport(long executorContextPointer, long storeContextPointer, long importObjectPointer);
 
     @Override
     protected void doDelete() {

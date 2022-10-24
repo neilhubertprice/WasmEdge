@@ -122,10 +122,10 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_nativeRegisterModule
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_ExecutorContext_nativeRegisterImport
-        (JNIEnv *env, jobject thisObject, jlong executorContextPointer, jlong storeContextPointer, jobject jImpObj) {
+        (JNIEnv *env, jobject thisObject, jlong executorContextPointer, jlong storeContextPointer, jlong importObjectPointer) {
     WasmEdge_ExecutorContext *exeCxt = (WasmEdge_ExecutorContext *)executorContextPointer;
     WasmEdge_StoreContext *storeCxt = (WasmEdge_StoreContext *)storeContextPointer;
-    WasmEdge_ImportObjectContext *impObj = getImportObjectContext(env, jImpObj);
+    WasmEdge_ImportObjectContext *impObj = (WasmEdge_ImportObjectContext *)importObjectPointer;
 
     WasmEdge_ExecutorRegisterImport(exeCxt, storeCxt, impObj);
 }

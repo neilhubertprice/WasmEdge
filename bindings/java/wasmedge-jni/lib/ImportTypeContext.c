@@ -29,11 +29,6 @@ JNIEXPORT jstring JNICALL Java_org_wasmedge_ImportTypeContext_getModuleName
     return WasmEdgeStringToJString(env, wModName);
 }
 
-/*
- * Class:     org_wasmedge_ImportTypeContext
- * Method:    getExternalName
- * Signature: ()Ljava/lang/String;
- */
 JNIEXPORT jstring JNICALL Java_org_wasmedge_ImportTypeContext_getExternalName
         (JNIEnv *env, jobject thisObject) {
     WasmEdge_ImportTypeContext *expType = getImportTypeContext(env, thisObject);
@@ -44,11 +39,6 @@ JNIEXPORT jstring JNICALL Java_org_wasmedge_ImportTypeContext_getExternalName
 
 }
 
-/*
- * Class:     org_wasmedge_ImportTypeContext
- * Method:    getExternalType
- * Signature: ()Lorg/wasmedge/enums/ExternalType;
- */
 JNIEXPORT jint JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetExternalType
         (JNIEnv * env, jobject thisObject) {
    WasmEdge_ImportTypeContext *expType = getImportTypeContext(env, thisObject);
@@ -65,11 +55,6 @@ JNIEXPORT jlong JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetFunctionTyp
     return (jlong)functionTypeContext;
 }
 
-/*
- * Class:     org_wasmedge_ImportTypeContext
- * Method:    getTableType
- * Signature: ()Lorg/wasmedge/TableTypeContext;
- */
 JNIEXPORT jobject JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetTableType
         (JNIEnv *env, jobject thisObject, jlong astmContextPointer) {
     WasmEdge_ImportTypeContext  *expType = getImportTypeContext(env, thisObject);
@@ -79,11 +64,7 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetTableType
     return createJTableTypeContext(env, tableCxt);
 
 }
-/*
- * Class:     org_wasmedge_ImportTypeContext
- * Method:    getMemoryType
- * Signature: ()Lorg/wasmedge/MemoryTypeContext;
- */
+
 JNIEXPORT jobject JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetMemoryType
         (JNIEnv *env, jobject thisObject, jlong astmContextPointer) {
     WasmEdge_ImportTypeContext  *expType = getImportTypeContext(env, thisObject);

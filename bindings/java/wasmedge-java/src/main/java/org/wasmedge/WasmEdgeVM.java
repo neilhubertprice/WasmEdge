@@ -146,7 +146,11 @@ public class WasmEdgeVM {
 
     public native void registerModuleFromBuffer(String moduleName, byte[] buffer);
 
-    public native void registerModuleFromImport(ImportObjectContext importObjectContext);
+    public void registerModuleFromImport(ImportObjectContext importObjectContext) {
+        nativeRegisterModuleFromImport(importObjectContext.getPointer());
+    }
+
+    private native void nativeRegisterModuleFromImport(long importObjectPointer);
 
     public void registerModuleFromASTModule(String moduleName, ASTModuleContext astModuleContext) {
         nativeRegisterModuleFromASTModule(moduleName, astModuleContext.getPointer());
@@ -192,10 +196,10 @@ public class WasmEdgeVM {
     private native long nativeGetFunctionType(String funcName);
 
     public ImportObjectContext getImportModuleContext(HostRegistration reg) {
-        return nativeGetImportModuleContext(reg.getVal());
+        return new ImportObjectContext(nativeGetImportModuleContext(reg.getVal()));
     }
 
-    private native ImportObjectContext nativeGetImportModuleContext(int reg);
+    private native long nativeGetImportModuleContext(int reg);
 
 
     public StoreContext getStoreContext() {

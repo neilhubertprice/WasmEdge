@@ -10,33 +10,21 @@
 #include "GlobalInstanceContext.h"
 #include "TableInstanceContext.h"
 
-jobject createJImportObject(JNIEnv* env, const WasmEdge_ImportObjectContext * impObj);
-
-WasmEdge_ImportObjectContext * getImportObjectContext(JNIEnv* env, jobject jImpObjCxt) {
-
-    if(jImpObjCxt == NULL) {
-        return NULL;
-    }
-    WasmEdge_ImportObjectContext * importObjectContext=
-            (struct WasmEdge_ImportObjectContext *)getPointer(env, jImpObjCxt);
-
-    return importObjectContext;
+JNIEXPORT jlong JNICALL Java_org_wasmedge_ImportObjectContext_nativeInit
+        (JNIEnv *env, jobject thisObject, jstring moduleName) {
+    WasmEdge_ImportObjectContext *impCxt = WasmEdge_ImportObjectCreate(JStringToWasmString(env, moduleName));
+    return (jlong)impCxt;
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_nativeInit
-(JNIEnv * env, jobject thisObject, jstring moduleName) {
-    WasmEdge_ImportObjectContext * impCxt = WasmEdge_ImportObjectCreate(JStringToWasmString(env, moduleName));
-    setPointer(env, thisObject, (long)impCxt);
-}
-
-JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_initWASI
-        (JNIEnv *env , jobject thisObject, jobjectArray jArgs, jobjectArray jEnvs, jobjectArray jPreopens) {
+JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_nativeInitWASI
+        (JNIEnv *env, jobject thisObject, jlong importObjectPointer, jobjectArray jArgs, jobjectArray jEnvs,
+        jobjectArray jPreopens) {
+    WasmEdge_ImportObjectContext *impCxt = (WasmEdge_ImportObjectContext *)importObjectPointer;
 
     const char** args = JStringArrayToPtr(env, jArgs);
     const char** envs = JStringArrayToPtr(env, jEnvs);
     const char** preopens = JStringArrayToPtr(env, jPreopens);
 
-    WasmEdge_ImportObjectContext* impCxt = getImportObjectContext(env, thisObject);
     WasmEdge_ImportObjectInitWASI(impCxt, args, (*env)->GetArrayLength(env, jArgs),
                                   envs, (*env)->GetArrayLength(env, jEnvs),
                                   preopens, (*env)->GetArrayLength(env, jPreopens));
@@ -45,82 +33,77 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_initWASI
     ReleaseCString(env, jPreopens, preopens);
 }
 
-JNIEXPORT jint JNICALL Java_org_wasmedge_ImportObjectContext_getWASIExitCode
-        (JNIEnv * env, jobject thisObject) {
-    return WasmEdge_ImportObjectWASIGetExitCode(getImportObjectContext(env, thisObject));
+JNIEXPORT jint JNICALL Java_org_wasmedge_ImportObjectContext_nativeGetWASIExitCode
+        (JNIEnv *env, jobject thisObject, jlong importObjectPointer) {
+    WasmEdge_ImportObjectContext *impCxt = (WasmEdge_ImportObjectContext *)importObjectPointer;
+    return WasmEdge_ImportObjectWASIGetExitCode(impCxt);
 }
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_ImportObjectContext_createWasmEdgeProcess
-        (JNIEnv * env, jclass thisClass, jobjectArray jAllowedCmds, jboolean jAllowAll) {
+JNIEXPORT jlong JNICALL Java_org_wasmedge_ImportObjectContext_nativeCreateWasmEdgeProcess
+        (JNIEnv *env, jclass thisClass, jobjectArray jAllowedCmds, jboolean jAllowAll) {
+    const char **allowedCmds = JStringArrayToPtr(env, jAllowedCmds);
 
-    const char** allowedCmds = JStringArrayToPtr(env, jAllowedCmds);
-
-    WasmEdge_ImportObjectContext* impCxt = WasmEdge_ImportObjectCreateWasmEdgeProcess(allowedCmds, (*env)->GetArrayLength(env, jAllowedCmds), jAllowAll);
+    WasmEdge_ImportObjectContext *impCxt = WasmEdge_ImportObjectCreateWasmEdgeProcess(allowedCmds, (*env)->GetArrayLength(env, jAllowedCmds), jAllowAll);
 
     ReleaseCString(env, jAllowedCmds, allowedCmds);
 
-    return createJImportObject(env, impCxt);
-
+    return (jlong)impCxt;
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_initWasmEdgeProcess
-(JNIEnv *env, jobject thisObject, jobjectArray jAllowedCmds, jboolean jAllowAll) {
-    const char** allowedCmds = JStringArrayToPtr(env, jAllowedCmds);
+JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_nativeInitWasmEdgeProcess
+        (JNIEnv *env, jobject thisObject, jlong importObjectPointer, jobjectArray jAllowedCmds, jboolean jAllowAll) {
+    WasmEdge_ImportObjectContext *impCxt = (WasmEdge_ImportObjectContext *)importObjectPointer;
 
-    WasmEdge_ImportObjectContext* impCxt = getImportObjectContext(env, thisObject);
+    const char** allowedCmds = JStringArrayToPtr(env, jAllowedCmds);
     WasmEdge_ImportObjectInitWasmEdgeProcess(impCxt, allowedCmds, (*env)->GetArrayLength(env, jAllowedCmds), jAllowAll);
 
     ReleaseCString(env, jAllowedCmds, allowedCmds);
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_nativeAddFunction
-(JNIEnv * env, jobject thisObject, jstring jFuncName, jlong funcPointer) {
-    WasmEdge_ImportObjectContext * impObjCxt = getImportObjectContext(env, thisObject);
+        (JNIEnv *env, jobject thisObject, jlong importObjectPointer, jstring jFuncName, jlong funcPointer) {
+    WasmEdge_ImportObjectContext *impObjCxt = (WasmEdge_ImportObjectContext *)importObjectPointer;
     WasmEdge_FunctionInstanceContext *funcInst = (WasmEdge_FunctionInstanceContext *)funcPointer;
 
     WasmEdge_ImportObjectAddFunction(impObjCxt, JStringToWasmString(env, jFuncName), funcInst);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_addTable
-(JNIEnv * env, jobject thisObject, jstring jTabName, jobject jTable) {
-    WasmEdge_ImportObjectContext * impObjCxt = getImportObjectContext(env, thisObject);
+JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_nativeAddTable
+        (JNIEnv *env, jobject thisObject, jlong importObjectPointer, jstring jTabName, jobject jTable) {
+    WasmEdge_ImportObjectContext *impObjCxt = (WasmEdge_ImportObjectContext *)importObjectPointer;
     WasmEdge_TableInstanceContext *tabIns = getTableInstanceContext(env, jTable);
     WasmEdge_ImportObjectAddTable(impObjCxt, JStringToWasmString(env, jTabName), tabIns);
 
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_addMemory
-(JNIEnv * env, jobject thisObject, jstring jMemName, jobject jMem) {
-
-    WasmEdge_ImportObjectContext * impObjCxt = getImportObjectContext(env, thisObject);
+JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_nativeAddMemory
+        (JNIEnv *env, jobject thisObject, jlong importObjectPointer, jstring jMemName, jobject jMem) {
+    WasmEdge_ImportObjectContext *impObjCxt = (WasmEdge_ImportObjectContext *)importObjectPointer;
     WasmEdge_MemoryInstanceContext *memCxt = getMemoryInstanceContext(env, jMem);
 
     WasmEdge_ImportObjectAddMemory(impObjCxt, JStringToWasmString(env, jMemName), memCxt);
 }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_nativeAddGlobal
-(JNIEnv * env, jobject thisObject, jstring jGlobalName, jlong globalInstancePointer) {
-    WasmEdge_ImportObjectContext * impObjCxt = getImportObjectContext(env, thisObject);
+        (JNIEnv *env, jobject thisObject, jlong importObjectPointer, jstring jGlobalName, jlong globalInstancePointer) {
+    WasmEdge_ImportObjectContext *impObjCxt = (WasmEdge_ImportObjectContext *)importObjectPointer;
     WasmEdge_GlobalInstanceContext *globalInstance = (WasmEdge_GlobalInstanceContext *)globalInstancePointer;
     WasmEdge_ImportObjectAddGlobal(impObjCxt, JStringToWasmString(env, jGlobalName), globalInstance);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_delete
-(JNIEnv * env, jobject thisObject) {
-    WasmEdge_ImportObjectContext *impObjCxt = getImportObjectContext(env, thisObject);
+JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_nativeDelete
+        (JNIEnv *env, jobject thisObject, jlong importObjectPointer) {
+    WasmEdge_ImportObjectContext *impObjCxt = (WasmEdge_ImportObjectContext *)importObjectPointer;
     WasmEdge_ImportObjectDelete(impObjCxt);
-    setPointer(env, thisObject, 0);
-
 }
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_ImportObjectContext_CreateWASI
+JNIEXPORT jlong JNICALL Java_org_wasmedge_ImportObjectContext_nativeCreateWASI
         (JNIEnv *env , jclass thisClass, jobjectArray jArgs, jobjectArray jEnvs, jobjectArray jPreopens) {
-
     const char** args = JStringArrayToPtr(env, jArgs);
     const char** envs = JStringArrayToPtr(env, jEnvs);
     const char** preopens = JStringArrayToPtr(env, jPreopens);
 
-    WasmEdge_ImportObjectContext * importObjectContext = WasmEdge_ImportObjectCreateWASI(args, (*env)->GetArrayLength(env, jArgs),
+    WasmEdge_ImportObjectContext *importObjectContext = WasmEdge_ImportObjectCreateWASI(args, (*env)->GetArrayLength(env, jArgs),
                                     envs, (*env)->GetArrayLength(env,jEnvs),
                                     preopens, (*env)->GetArrayLength(env,jPreopens));
 
@@ -128,15 +111,6 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_ImportObjectContext_CreateWASI
     ReleaseCString(env, jEnvs, envs);
     ReleaseCString(env, jPreopens, preopens);
 
-    return createJImportObject(env, importObjectContext);
+    return (jlong)importObjectContext;
 }
 
-
-jobject createJImportObject(JNIEnv* env, const WasmEdge_ImportObjectContext * impObj) {
-
-    jclass clazz = (*env)->FindClass(env, "org/wasmedge/ImportObjectContext");
-
-    jmethodID constructorId = (*env)->GetMethodID(env, clazz, "<init>", "(J)V");
-
-    return (*env)->NewObject(env, clazz, constructorId, (long) impObj);
-}

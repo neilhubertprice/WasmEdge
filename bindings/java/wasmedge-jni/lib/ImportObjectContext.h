@@ -7,7 +7,4 @@
 #include "jni.h"
 #include "wasmedge/wasmedge.h"
 
-jobject createJImportObject(JNIEnv* env, const WasmEdge_ImportObjectContext * impObj);
-
-WasmEdge_ImportObjectContext * getImportObjectContext(JNIEnv* env, jobject jImpObjCxt);
 #endif //WASMEDGE_JAVA_IMPORTOBJECTCONTEXT_H

@@ -403,12 +403,12 @@ JNIEXPORT jlong JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetStatisticsContext
     return (jlong)statCxt;
 }
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetImportModuleContext
+JNIEXPORT jlong JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetImportModuleContext
         (JNIEnv *env, jobject thisObject, jint reg) {
-    WasmEdge_VMContext * vmContext = getVmContext(env, thisObject);
-    WasmEdge_ImportObjectContext* imp = WasmEdge_VMGetImportModuleContext(vmContext, (enum WasmEdge_HostRegistration)reg);
+    WasmEdge_VMContext *vmContext = getVmContext(env, thisObject);
+    WasmEdge_ImportObjectContext *imp = WasmEdge_VMGetImportModuleContext(vmContext, (enum WasmEdge_HostRegistration)reg);
 
-    return createJImportObject(env, imp);
+    return (jlong)imp;
 }
 
 
@@ -426,10 +426,9 @@ JNIEXPORT jlong JNICALL Java_org_wasmedge_WasmEdgeVM_nativeGetFunctionTypeRegist
     return (jlong)functionTypeContext;
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_registerModuleFromImport
-        (JNIEnv * env, jobject thisObject, jobject jImport) {
-    WasmEdge_ImportObjectContext * impObj = getImportObjectContext(env, jImport);
-
+JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeRegisterModuleFromImport
+        (JNIEnv * env, jobject thisObject, jlong importObjectPointer) {
+    WasmEdge_ImportObjectContext * impObj = (WasmEdge_ImportObjectContext *)importObjectPointer;
 
     WasmEdge_VMContext *vm = getVmContext(env, thisObject);
 
