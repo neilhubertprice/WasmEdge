@@ -3,31 +3,34 @@ package org.wasmedge;
 import org.wasmedge.enums.ValueType;
 import org.wasmedge.enums.WasmEdgeMutability;
 
-public class GlobalTypeContext {
-    private long pointer;
+public class GlobalTypeContext extends AbstractWasmEdgeContext {
+
+    protected GlobalTypeContext(long pointer) {
+        super(pointer);
+    }
 
     public GlobalTypeContext(ValueType valueType, WasmEdgeMutability wasmEdgeMutability) {
-        nativeInit(valueType.getValue(), wasmEdgeMutability.getValue());
+        initialisePointer(nativeInit(valueType.getValue(), wasmEdgeMutability.getValue()));
     }
 
-    private GlobalTypeContext(long pointer) {
-        this.pointer = pointer;
+    private native long nativeInit(int valueType, int wasmEdgeMutability);
+
+    @Override
+    protected void doDelete() {
+        nativeDelete(pointer);
     }
 
-    private native void nativeInit(int valueType, int wasmEdgeMutability);
-
-    public native void delete();
+    private native void nativeDelete(long globalTypePointer);
 
     public ValueType getValueType() {
-        return ValueType.parseType(nativeGetValueType());
+        return ValueType.parseType(nativeGetValueType(pointer));
     }
 
-    private native int nativeGetValueType();
+    private native int nativeGetValueType(long globalTypePointer);
 
     public WasmEdgeMutability getMutability() {
-        return WasmEdgeMutability.parseMutability(nativeGetMutability());
+        return WasmEdgeMutability.parseMutability(nativeGetMutability(pointer));
     }
 
-    private native int nativeGetMutability();
-
+    private native int nativeGetMutability(long globalTypePointer);
 }

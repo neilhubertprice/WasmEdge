@@ -106,16 +106,16 @@ public class StoreContext extends AbstractWasmEdgeContext {
     private native List<String> nativeListGlobalRegistered(long storeContextPointer, String moduleName);
 
     public GlobalInstanceContext findGlobal(String name) {
-        return nativeFindGlobal(pointer, name);
+        return new GlobalInstanceContext(nativeFindGlobal(pointer, name));
     }
 
-    private native GlobalInstanceContext nativeFindGlobal(long storeContextPointer, String name);
+    private native long nativeFindGlobal(long storeContextPointer, String name);
 
     public GlobalInstanceContext findGlobalRegistered(String moduleName, String globalName) {
-        return nativeFindGlobalRegistered(pointer, moduleName, globalName);
+        return new GlobalInstanceContext(nativeFindGlobalRegistered(pointer, moduleName, globalName));
     }
 
-    private native GlobalInstanceContext nativeFindGlobalRegistered(long storeContextPointer, String moduleName, String globalName);
+    private native long nativeFindGlobalRegistered(long storeContextPointer, String moduleName, String globalName);
 
     public List<String> listModule() {
         return nativeListModule(pointer);

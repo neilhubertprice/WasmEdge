@@ -42,10 +42,10 @@ public class ExportTypeContext extends AbstractWasmEdgeContext {
     private native MemoryTypeContext nativeGetMemoryType(long astmContextPointer);
 
     public GlobalTypeContext getGlobalType() {
-        return nativeGetGlobalType(astCtx.getPointer());
+        return new GlobalTypeContext(nativeGetGlobalType(astCtx.getPointer()));
     }
 
-    private native GlobalTypeContext nativeGetGlobalType(long astmContextPointer);
+    private native long nativeGetGlobalType(long astmContextPointer);
 
     @Override
     protected void doDelete() {

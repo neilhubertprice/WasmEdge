@@ -92,19 +92,15 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetMemoryTyp
     const WasmEdge_MemoryTypeContext *memCxt = WasmEdge_ImportTypeGetMemoryType(astCxt, expType);
     return createJMemoryTypeContext(env, memCxt);
 }
-/*
- * Class:     org_wasmedge_ImportTypeContext
- * Method:    getGlobalType
- * Signature: ()Lorg/wasmedge/GlobalTypeContext;
- */
-JNIEXPORT jobject JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetGlobalType
+
+JNIEXPORT jlong JNICALL Java_org_wasmedge_ImportTypeContext_nativeGetGlobalType
         (JNIEnv *env, jobject thisObject, jlong astmContextPointer) {
-    WasmEdge_ImportTypeContext  *expType = getImportTypeContext(env, thisObject);
+    WasmEdge_ImportTypeContext  *impType = getImportTypeContext(env, thisObject);
     WasmEdge_ASTModuleContext  *astCxt = (WasmEdge_ASTModuleContext *)astmContextPointer;
 
-    const WasmEdge_GlobalTypeContext *globalCxt = WasmEdge_ImportTypeGetGlobalType(astCxt,expType);
+    const WasmEdge_GlobalTypeContext *globalCxt = WasmEdge_ImportTypeGetGlobalType(astCxt, impType);
 
-    return createJGlobalTypeContext(env, globalCxt);
+    return (jlong)globalCxt;
 }
 
 jobject createImportTypeContext(JNIEnv * env, const WasmEdge_ImportTypeContext * cxt, jobject jAstMod) {

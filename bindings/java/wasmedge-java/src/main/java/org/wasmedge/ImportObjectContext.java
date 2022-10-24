@@ -33,7 +33,11 @@ public class ImportObjectContext {
 
     public native void addMemory(String name, MemoryInstanceContext memoryInstanceContext);
 
-    public native void addGlobal(String name, GlobalInstanceContext globalInstanceContext);
+    public void addGlobal(String name, GlobalInstanceContext globalInstanceContext) {
+        nativeAddGlobal(name, globalInstanceContext.getPointer());
+    }
+
+    private native void nativeAddGlobal(String name, long globalInstancePointer);
 
     public native void delete();
 }

@@ -241,31 +241,30 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_nativeListGlobalRegiste
     return jNameList;
 }
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_nativeFindGlobal
+JNIEXPORT jlong JNICALL Java_org_wasmedge_StoreContext_nativeFindGlobal
         (JNIEnv * env, jobject thisObject, jlong storeContextPointer, jstring jGlobName) {
     WasmEdge_StoreContext *storeCxt = (WasmEdge_StoreContext *)storeContextPointer;
     WasmEdge_String wGlobName = JStringToWasmString(env, jGlobName);
 
-    WasmEdge_GlobalInstanceContext * globInst = WasmEdge_StoreFindGlobal(storeCxt, wGlobName);
+    WasmEdge_GlobalInstanceContext *globInst = WasmEdge_StoreFindGlobal(storeCxt, wGlobName);
     
     WasmEdge_StringDelete(wGlobName);
 
-    return createJGlobalInstanceContext(env, globInst);
+    return (jlong)globInst;
 }
 
-JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_nativeFindGlobalRegistered
+JNIEXPORT jlong JNICALL Java_org_wasmedge_StoreContext_nativeFindGlobalRegistered
         (JNIEnv *env, jobject thisObject, jlong storeContextPointer, jstring jModName, jstring jGlobName) {
     WasmEdge_StoreContext *storeCxt = (WasmEdge_StoreContext *)storeContextPointer;
     WasmEdge_String wModName = JStringToWasmString(env, jModName);
     WasmEdge_String wGlobName = JStringToWasmString(env, jGlobName);
 
-    WasmEdge_GlobalInstanceContext * globInst = WasmEdge_StoreFindGlobalRegistered(storeCxt, wModName, wGlobName);
-    jobject jGlob = createJGlobalInstanceContext(env, globInst);
+    WasmEdge_GlobalInstanceContext *globInst = WasmEdge_StoreFindGlobalRegistered(storeCxt, wModName, wGlobName);
 
     WasmEdge_StringDelete(wGlobName);
     WasmEdge_StringDelete(wModName);
 
-    return jGlob;
+    return (jlong)globInst;
 }
 
 JNIEXPORT jobject JNICALL Java_org_wasmedge_StoreContext_nativeListModule

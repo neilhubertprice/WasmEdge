@@ -98,11 +98,10 @@ JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_addMemory
     WasmEdge_ImportObjectAddMemory(impObjCxt, JStringToWasmString(env, jMemName), memCxt);
 }
 
-JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_addGlobal
-(JNIEnv * env, jobject thisObject, jstring jGlobalName, jobject jGlobal) {
-
+JNIEXPORT void JNICALL Java_org_wasmedge_ImportObjectContext_nativeAddGlobal
+(JNIEnv * env, jobject thisObject, jstring jGlobalName, jlong globalInstancePointer) {
     WasmEdge_ImportObjectContext * impObjCxt = getImportObjectContext(env, thisObject);
-    WasmEdge_GlobalInstanceContext *globalInstance = getGlobalInstanceContext(env, jGlobal);
+    WasmEdge_GlobalInstanceContext *globalInstance = (WasmEdge_GlobalInstanceContext *)globalInstancePointer;
     WasmEdge_ImportObjectAddGlobal(impObjCxt, JStringToWasmString(env, jGlobalName), globalInstance);
 }
 
