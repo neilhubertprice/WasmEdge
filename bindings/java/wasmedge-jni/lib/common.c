@@ -294,7 +294,6 @@ void setJavaValueObject(JNIEnv *env, WasmEdge_Value value, jobject j_val) {
     }
 }
 
-
 jobject CreateJavaArrayList(JNIEnv* env, jint len) {
     jclass listClass = findJavaClass(env, "java/util/ArrayList");
 

@@ -12,35 +12,15 @@
 
 WasmEdge_Result HostFuncWrap(void *This, void* Data, WasmEdge_MemoryInstanceContext *Mem,
                          const WasmEdge_Value *In, const uint32_t InLen, WasmEdge_Value *Out, const uint32_t OutLen) {
+    JNIEnv *env = This;
+    long funcKey = (long)Data;
 
-    HostFuncParam * param = (HostFuncParam*)This;
-    JNIEnv * env = param->env;
-    const char* funcKey = param->jFuncKey;
+    jclass clazz = (*env)->FindClass(env, "org/wasmedge/FunctionInstanceContext");
 
-    jstring jFuncKey = (*env)->NewStringUTF(env, funcKey);
-
-    jclass clazz = (*env)->FindClass(env, "org/wasmedge/WasmEdgeVM");
-    jmethodID funcGetter = (*env)->GetStaticMethodID(env, clazz, "getHostFunc", "(Ljava/lang/String;)Lorg/wasmedge/HostFunction;");
-    if(checkException(env, "Error looking up getHostFunc")) {
+    jmethodID funcCallHF = (*env)->GetStaticMethodID(env, clazz, "callHostFunction", "(JJLjava/util/List;Ljava/util/List;)Lorg/wasmedge/Result;");
+    if(checkException(env, "Error looking up callHostFunction")) {
         return WasmEdge_Result_Fail;
     }
-
-    jobject jFunc = (*env)->CallStaticObjectMethod(env, clazz, funcGetter, jFuncKey);
-    if(checkException(env, "Error calling getHostFunc")) {
-        return WasmEdge_Result_Fail;
-    }
-
-    jclass jFuncClass = (*env)->GetObjectClass(env, jFunc);
-    if(checkException(env, "Error looking up HostFunc class")) {
-        return WasmEdge_Result_Fail;
-    }
-
-    jmethodID funcMethod = (*env)->GetMethodID(env, jFuncClass, "apply", "(Lorg/wasmedge/MemoryInstanceContext;Ljava/util/List;Ljava/util/List;)Lorg/wasmedge/Result;");
-    if(checkException(env, "Error looking up apply method")) {
-        return WasmEdge_Result_Fail;
-    }
-
-    jobject jMem = createJMemoryInstanceContext(env, Mem);
 
     jobject jParams = CreateJavaArrayList(env, InLen);
 
@@ -50,15 +30,14 @@ WasmEdge_Result HostFuncWrap(void *This, void* Data, WasmEdge_MemoryInstanceCont
 
     jobject jReturns = CreateJavaArrayList(env, OutLen);
 
-    jobject result = (*env)->CallObjectMethod(env, jFunc, funcMethod, jMem, jParams, jReturns);
-    if(checkException(env, "Error calling HostFunction.apply()")) {
+    jobject result = (*env)->CallStaticObjectMethod(env, clazz, funcCallHF, funcKey, Mem, jParams, jReturns);
+    if(checkException(env, "Error calling callHostFunction")) {
         return WasmEdge_Result_Fail;
     }
 
     for (int i = 0; i < OutLen; ++i) {
        Out[i] = JavaValueToWasmEdgeValue(env, GetListElement(env, jReturns, i));
     }
-
 
     jboolean isSuccess = true;
     jboolean isTerminate = false;
@@ -112,16 +91,9 @@ JNIEXPORT jlong JNICALL Java_org_wasmedge_FunctionInstanceContext_nativeGetFunct
 }
 
 JNIEXPORT jlong JNICALL Java_org_wasmedge_FunctionInstanceContext_nativeCreateFunction
-        (JNIEnv *env, jobject thisObject, jlong funcTypePointer, jstring jHostFuncKey, jobject jData, jlong jCost) {
+        (JNIEnv *env, jobject thisObject, jlong funcTypePointer, jlong funcKey, jlong jCost) {
     WasmEdge_FunctionTypeContext *funcType = (WasmEdge_FunctionTypeContext *)funcTypePointer;
-
-	// TODO Where do params and funcKey get freed?  We have no control over this currently
-    HostFuncParam *params = malloc(sizeof(struct HostFuncParam));
-    const char *funcKey = JStringToCString(env, jHostFuncKey);
-    params->jFuncKey= funcKey;
-    params->env = env;
- 
-    WasmEdge_FunctionInstanceContext *funcInstance = WasmEdge_FunctionInstanceCreateBinding(funcType, HostFuncWrap, params, NULL, jCost);
+    WasmEdge_FunctionInstanceContext *funcInstance = WasmEdge_FunctionInstanceCreateBinding(funcType, HostFuncWrap, env, (void *)funcKey, jCost);
 
     return (jlong)funcInstance;
 }
