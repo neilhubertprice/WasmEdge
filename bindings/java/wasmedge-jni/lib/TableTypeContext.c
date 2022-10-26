@@ -19,12 +19,7 @@ JNIEXPORT jobject JNICALL Java_org_wasmedge_TableTypeContext_nativeGetLimit
 
     WasmEdge_Limit limit = WasmEdge_TableTypeGetLimit(tableTypeContext);
 
-    jclass limitClass = findJavaClass(env, "org/wasmedge/WasmEdgeLimit");
-
-    jmethodID constructor = findJavaMethod(env, limitClass, "<init>", "(ZJJ)V");
-
-    return (*env)->NewObject(env, limitClass, constructor,
-                             (jboolean)limit.HasMax, (jlong)limit.Min, (jlong)limit.Max);
+    return construct_WasmEdgeLimit(env, (jboolean)limit.HasMax, (jlong)limit.Min, (jlong)limit.Max);
 }
 
 JNIEXPORT jint JNICALL Java_org_wasmedge_TableTypeContext_nativeGetRefType

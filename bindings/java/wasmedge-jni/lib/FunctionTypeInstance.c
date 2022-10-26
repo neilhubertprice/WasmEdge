@@ -22,57 +22,34 @@ WasmEdge_Result HostFuncWrap(void *This, void* Data, WasmEdge_MemoryInstanceCont
         return WasmEdge_Result_Fail;
     }
 
-    jobject jParams = CreateJavaArrayList(env, InLen);
+    jobject jParams = construct_ArrayList(env, InLen);
 
     for (int i = 0; i < InLen; ++i) {
-        AddElementToJavaList(env, jParams, WasmEdgeValueToJavaValue(env, In[i]));
+        jobject jValue = WasmEdgeValueToJavaValue(env, In[i]);
+        call_List_add(env, jParams, jValue);
+        (*env)->DeleteLocalRef(env, jValue);
     }
 
-    jobject jReturns = CreateJavaArrayList(env, OutLen);
+    jobject jReturns = construct_ArrayList(env, OutLen);
 
-    jobject result = (*env)->CallStaticObjectMethod(env, clazz, funcCallHF, funcKey, Mem, jParams, jReturns);
-    if(checkException(env, "Error calling callHostFunction")) {
-        return WasmEdge_Result_Fail;
-    }
-
-    for (int i = 0; i < OutLen; ++i) {
-       Out[i] = JavaValueToWasmEdgeValue(env, GetListElement(env, jReturns, i));
-    }
+    jobject result = call_FunctionInstanceContext_static_callHostFunction(env, funcKey, (jlong)Mem, jParams, jReturns);
 
     jboolean isSuccess = true;
     jboolean isTerminate = false;
 
     if (result != NULL) {
-        jclass resultClass = (*env)->GetObjectClass(env, result);
-        if(checkException(env, "Error looking up Result class")) {
-            return WasmEdge_Result_Fail;
-        }
-	    if (resultClass != NULL) {
-            jmethodID resultSuccess = (*env)->GetMethodID(env, resultClass, "isSuccess", "()Z");
-            if(checkException(env, "Error looking up isSuccess method")) {
-                return WasmEdge_Result_Fail;
-            }
-            if (resultSuccess != NULL) {
-                isSuccess = (*env)->CallBooleanMethod(env, result, resultSuccess);
-                if(checkException(env, "Error calling isSuccess method")) {
-                    return WasmEdge_Result_Fail;
-                }
-
-                jmethodID resultTerminate = (*env)->GetMethodID(env, resultClass, "isTerminate", "()Z");
-                if(checkException(env, "Error looking up isTerminate method")) {
-                    return WasmEdge_Result_Fail;
-                }
-                if (resultTerminate != NULL) {
-                    isTerminate = (*env)->CallBooleanMethod(env, result, resultTerminate);
-                    if(checkException(env, "Error calling isTerminate method")) {
-                        return WasmEdge_Result_Fail;
-                    }
-                }
-            }
-        }
+        isSuccess = call_Result_isSuccess(env, result);
+        isTerminate = call_Result_isTerminate(env, result);
     }
 
-    if (!isSuccess) {
+    if (isSuccess) {         
+        // Only translate return values on success
+        for (int i = 0; i < OutLen; ++i) {
+            jobject jValue = call_List_get(env, jReturns, i);
+            Out[i] = JavaValueToWasmEdgeValue(env, jValue);
+            (*env)->DeleteLocalRef(env, jValue);
+        }
+    } else {
         return WasmEdge_Result_Fail;
     }
 
@@ -97,11 +74,6 @@ JNIEXPORT jlong JNICALL Java_org_wasmedge_FunctionInstanceContext_nativeCreateFu
 
     return (jlong)funcInstance;
 }
-
-// Not currently implemented
-// JNIEXPORT jlong JNICALL Java_org_wasmedge_FunctionInstanceContext_nativeCreateBinding
-//         (JNIEnv *env, jobject thisObject, jobject jWrapFuncType, jobject jWrapFunc, jobject jBinding, jobject jData, jlong jCost) {
-// }
 
 JNIEXPORT void JNICALL Java_org_wasmedge_FunctionInstanceContext_nativeDelete(JNIEnv *env, jobject thisObject, jlong funcInstancePointer) {
     WasmEdge_FunctionInstanceContext *funcInstance = (WasmEdge_FunctionInstanceContext *)funcInstancePointer;

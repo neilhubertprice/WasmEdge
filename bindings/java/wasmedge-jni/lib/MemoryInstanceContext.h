@@ -8,6 +8,4 @@
 #include "jni.h"
 #include "wasmedge/wasmedge.h"
 
-jobject createJMemoryInstanceContext(JNIEnv* env, const WasmEdge_MemoryInstanceContext * memInstance);
-
 #endif //WASMEDGE_JAVA_MEMORYINSTANCECONTEXT_H

@@ -6,80 +6,62 @@
 #include "common.h"
 
 WasmEdge_Value JavaValueToWasmEdgeValue(JNIEnv *env, jobject jVal) {
-    jclass valueClass = (*env)->FindClass(env, "org/wasmedge/WasmEdgeValue");
-
-    jmethodID getType = (*env)->GetMethodID(env, valueClass, "getType", "()Lorg/wasmedge/enums/ValueType;");
-
-    jobject valType = (*env)->CallObjectMethod(env, jVal, getType);
-    checkException(env, "Error calling getType()");
-
-    jclass typeClass = (*env)->GetObjectClass(env, valType);
-
-    jmethodID getVal = (*env)->GetMethodID(env, typeClass, "getValue", "()I");
-
-    jint jType = (*env)->CallIntMethod(env,valType, getVal);
-    checkException(env, "Error calling getValue()");
-
+    jobject valType = call_WasmEdgeValue_getType(env, jVal);
+    jint jType = call_ValueType_getValue(env, valType);
     enum WasmEdge_ValType type = (enum WasmEdge_ValType)jType;
 
     WasmEdge_Value val;
 
     switch (type) {
         case WasmEdge_ValType_I32:
-            return WasmEdge_ValueGenI32(getIntVal(env, jVal));
+            return WasmEdge_ValueGenI32(call_WasmEdgeI32Value_getValue(env, jVal));
         case WasmEdge_ValType_I64:
-            return WasmEdge_ValueGenI64(getLongVal(env, jVal));
+            return WasmEdge_ValueGenI64(call_WasmEdgeI64Value_getValue(env, jVal));
         case WasmEdge_ValType_F32:
-            return WasmEdge_ValueGenF32(getFloatVal(env, jVal));
+            return WasmEdge_ValueGenF32(call_WasmEdgeF32Value_getValue(env, jVal));
         case WasmEdge_ValType_F64:
-            return WasmEdge_ValueGenF64(getDoubleVal(env, jVal));
+            return WasmEdge_ValueGenF64(call_WasmEdgeF64Value_getValue(env, jVal));
         case WasmEdge_ValType_V128:
             //TODO
-            return WasmEdge_ValueGenV128(getLongVal(env, jVal));
+            return WasmEdge_ValueGenV128(call_WasmEdgeI64Value_getValue(env, jVal));
         case WasmEdge_ValType_ExternRef:
-            return WasmEdge_ValueGenExternRef(getStringVal(env, jVal));
+            return WasmEdge_ValueGenExternRef(getExternRefStringVal(env, jVal));
 
         case WasmEdge_ValType_FuncRef:
-            return WasmEdge_ValueGenFuncRef(getLongVal(env, jVal));
+            // TODO
+            return WasmEdge_ValueGenFuncRef(call_WasmEdgeI64Value_getValue(env, jVal));
     }
 }
 
-jobject WasmEdgeValueToJavaValue(JNIEnv * env, WasmEdge_Value value) {
-    const char* valClassName = NULL;
-    char* key;
+jobject WasmEdgeValueToJavaValue(JNIEnv *env, WasmEdge_Value value) {
+    jobject jVal;
     switch (value.Type) {
         case WasmEdge_ValType_I32:
-            valClassName = "org/wasmedge/WasmEdgeI32Value";
+            jVal = construct_WasmEdgeI32Value_withParam(env, WasmEdge_ValueGetI32(value));
             break;
         case WasmEdge_ValType_I64:
-            valClassName = "org/wasmedge/WasmEdgeI64Value";
+            jVal = construct_WasmEdgeI64Value_withParam(env, WasmEdge_ValueGetI64(value));
             break;
         case WasmEdge_ValType_F32:
-            valClassName = "org/wasmedge/WasmEdgeF32Value";
+            jVal = construct_WasmEdgeF32Value_withParam(env, WasmEdge_ValueGetF32(value));
             break;
         case WasmEdge_ValType_F64:
-            valClassName = "org/wasmedge/WasmEdgeF64Value";
+            jVal = construct_WasmEdgeF64Value_withParam(env, WasmEdge_ValueGetF64(value));
             break;
         case WasmEdge_ValType_V128:
             // TODO
-            valClassName = NULL;
+            jVal = NULL;
             break;
         case WasmEdge_ValType_ExternRef:
-            valClassName = "org/wasmedge/WasmEdgeExternRef";
+            jVal = construct_WasmEdgeExternRef(env);
+            setExternRefStringVal(env, value, jVal);
             break;
         case WasmEdge_ValType_FuncRef:
-            valClassName = "org/wasmedge/WasmEdgeFuncRef";
+            // TODO
+            jVal = NULL;
             break;
     }
-    jclass valClass = (*env)->FindClass(env, valClassName);
 
-
-    jmethodID constructor = (*env)->GetMethodID(env, valClass, "<init>", "()V");
-
-    jobject jVal = (*env)->NewObject(env, valClass, constructor);
-
-    setJavaValueObject(env, value, jVal);
     return jVal;
 }
-
 

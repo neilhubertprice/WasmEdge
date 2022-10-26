@@ -16,56 +16,6 @@
 #include "ImportObjectContext.h"
 #include "string.h"
 
-void setJavaIntValue(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
-    int int_val = WasmEdge_ValueGetI32(val);
-    jclass val_clazz = (*env)->GetObjectClass(env, jobj);
-    jmethodID val_setter = (*env)->GetMethodID(env, val_clazz, "setValue", "(I)V");
-    (*env)->CallIntMethod(env, jobj, val_setter, int_val);
-    checkAndHandleException(env, "Error setting int value");
-}
-
-void setJavaLongValue(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
-    int long_val = WasmEdge_ValueGetI64(val);
-    jclass val_clazz = (*env)->GetObjectClass(env, jobj);
-    jmethodID val_setter = (*env)->GetMethodID(env, val_clazz, "setValue", "(J)V");
-    (*env)->CallLongMethod(env, jobj, val_setter, long_val);
-    checkAndHandleException(env, "Error setting long value");
-}
-
-void setJavaFloatValue(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
-    float float_val = WasmEdge_ValueGetF32(val);
-    jclass val_clazz = (*env)->GetObjectClass(env, jobj);
-    jmethodID val_setter = (*env)->GetMethodID(env, val_clazz, "setValue", "(F)V");
-    (*env)->CallFloatMethod(env, jobj, val_setter, float_val);
-    checkAndHandleException(env, "Error setting float value");
-}
-
-void setJavaDoubleValue(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
-    float double_val = WasmEdge_ValueGetF64(val);
-    jclass val_clazz = (*env)->GetObjectClass(env, jobj);
-    jmethodID val_setter = (*env)->GetMethodID(env, val_clazz, "setValue", "(D)V");
-    (*env)->CallFloatMethod(env, jobj, val_setter, double_val);
-    checkAndHandleException(env, "Error setting double value");
-}
-
-void setJavaStringValue(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
-    char* key = WasmEdge_ValueGetExternRef(val);
-    jclass val_clazz = (*env)->GetObjectClass(env, jobj);
-
-    jmethodID  val_setter = (*env)->GetMethodID(env, val_clazz, "setValue", "(Ljava/lang/String;)V");
-
-    jstring jkey = (*env)->NewStringUTF(env, key);
-    (*env)->CallObjectMethod(env, jobj, val_setter, jkey);
-    checkAndHandleException(env, "Error setting string value");
-}
-
-jobject createDoubleJavaLongValueObject(JNIEnv *env, WasmEdge_Value val) {
-    float double_val = WasmEdge_ValueGetF64(val);
-    jclass val_clazz = (*env)->FindClass(env, "org/wasmedge/WasmEdgeF64Value");
-    jmethodID val_constructor = (*env)->GetMethodID(env, val_clazz, "<init>", "(D)V");
-    jobject j_val = (*env)->NewObject(env, val_clazz, val_constructor, double_val);
-    return j_val;
-}
 
 JNIEXPORT void JNICALL Java_org_wasmedge_WasmEdgeVM_nativeRunWasmFromFile
         (JNIEnv *env, jobject this_object, jlong vmContextPointer, jstring file_path, jstring jFuncName,

@@ -64,16 +64,3 @@ JNIEXPORT void JNICALL Java_org_wasmedge_MemoryInstanceContext_nativeDelete
     WasmEdge_MemoryInstanceDelete(memInstance);
 }
 
-
-jobject createJMemoryInstanceContext(JNIEnv* env, const WasmEdge_MemoryInstanceContext * memInstance) {
-
-    // FIXME add to all instances.
-    if(memInstance == NULL) {
-        return NULL;
-    }
-
-    jclass clazz = (*env)->FindClass(env, "org/wasmedge/MemoryInstanceContext");
-    jmethodID constructorId = (*env)->GetMethodID(env, clazz, "<init>", "(J)V");
-    return (*env)->NewObject(env, clazz, constructorId, (long) memInstance);
-}
-

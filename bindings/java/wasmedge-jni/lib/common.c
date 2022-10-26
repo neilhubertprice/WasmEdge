@@ -9,159 +9,602 @@
 
 bool checkAndHandleException(JNIEnv *env, const char* msg);
 
+
+static jint JNI_VERSION = JNI_VERSION_1_8;
+
+static jclass JC_Object;
+static jmethodID JMID_Object_getClass;
+static jmethodID JMID_Object_toString;
+
+static jclass JC_Class;
+static jmethodID JMID_Class_getName;
+
+static jclass JC_NoClassDefFoundError;
+static jclass JC_NoSuchMethodError;
+static jclass JC_Exception;
+static jclass JC_RuntimeException;
+
+static jclass JC_WasmEdgeI32Value;
+static jclass JC_WasmEdgeI64Value;
+static jclass JC_WasmEdgeF32Value;
+static jclass JC_WasmEdgeF64Value;
+static jmethodID JMID_WasmEdgeI32Value_getValue;
+static jmethodID JMID_WasmEdgeI64Value_getValue;
+static jmethodID JMID_WasmEdgeF32Value_getValue;
+static jmethodID JMID_WasmEdgeF64Value_getValue;
+static jmethodID JMID_WasmEdgeI32Value_setValue;
+static jmethodID JMID_WasmEdgeI64Value_setValue;
+static jmethodID JMID_WasmEdgeF32Value_setValue;
+static jmethodID JMID_WasmEdgeF64Value_setValue;
+static jmethodID JMID_WasmEdgeI32Value_constructor;
+static jmethodID JMID_WasmEdgeI64Value_constructor;
+static jmethodID JMID_WasmEdgeF32Value_constructor;
+static jmethodID JMID_WasmEdgeF64Value_constructor;
+static jmethodID JMID_WasmEdgeI32Value_constructorWithParam;
+static jmethodID JMID_WasmEdgeI64Value_constructorWithParam;
+static jmethodID JMID_WasmEdgeF32Value_constructorWithParam;
+static jmethodID JMID_WasmEdgeF64Value_constructorWithParam;
+
+static jclass JC_WasmEdgeExternRef;
+static jclass JC_WasmEdgeFuncRef;
+static jmethodID JMID_WasmEdgeExternRef_getValue;
+static jmethodID JMID_WasmEdgeExternRef_setValue;
+static jmethodID JMID_WasmEdgeExternRef_constructor;
+static jmethodID JMID_WasmEdgeFuncRef_constructor;
+
+static jclass JC_List;
+static jclass JC_ArrayList;
+static jmethodID JMID_List_add;
+static jmethodID JMID_List_get;
+static jmethodID JMID_List_size;
+static jmethodID JMID_ArrayList_constructor;
+
+static jclass JC_WasmEdgeValue;
+static jclass JC_ValueType;
+static jmethodID JMID_WasmEdgeValue_getType;
+static jmethodID JMID_ValueType_getValue;
+static jmethodID JMID_ValueType_static_parseType;
+
+static jclass JC_WasmEdgeLimit;
+static jmethodID JMID_WasmEdgeLimit_constructor;
+
+static jclass JC_FunctionInstanceContext;
+static jmethodID JMID_FunctionInstanceContext_static_callHostFunction;
+
+static jclass JC_Result;
+static jmethodID JMID_Result_isSuccess;
+static jmethodID JMID_Result_isTerminate;
+
+// Initialize the class and methodID lookups
+jint JNI_OnLoad(JavaVM *vm, void *reserved) {
+
+    // Obtain the JNIEnv from the VM and confirm JNI_VERSION
+    JNIEnv *env;
+    if ((*vm)->GetEnv(vm, (void **)&env, JNI_VERSION) != JNI_OK) {
+        return JNI_ERR;
+    }
+
+    jclass tempLocalClassRef;
+
+    ///// java.lang.Object
+    tempLocalClassRef = (*env)->FindClass(env, "java/lang/Object");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_Object = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+   
+    JMID_Object_getClass = (*env)->GetMethodID(env, JC_Object, "getClass", "()Ljava/lang/Class;");
+    JMID_Object_toString = (*env)->GetMethodID(env, JC_Object, "toString", "()Ljava/lang/String;");
+
+    ///// java.lang.Class
+    tempLocalClassRef = (*env)->FindClass(env, "java/lang/Class");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_Class = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+    
+    JMID_Class_getName = (*env)->GetMethodID(env, JC_Class, "getName", "()Ljava/lang/String;");
+
+    ///// Exceptions
+    tempLocalClassRef = (*env)->FindClass(env, "java/lang/NoClassDefFoundError");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_NoClassDefFoundError = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+
+    tempLocalClassRef = (*env)->FindClass(env, "java/lang/NoSuchMethodError");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_NoSuchMethodError = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+
+    tempLocalClassRef = (*env)->FindClass(env, "java/lang/Exception");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_Exception = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+
+    tempLocalClassRef = (*env)->FindClass(env, "java/lang/RuntimeException");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_RuntimeException = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+
+
+    ///// WasmEdgeValue classes
+    tempLocalClassRef = (*env)->FindClass(env, "org/wasmedge/WasmEdgeI32Value");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_WasmEdgeI32Value = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+ 
+    tempLocalClassRef = (*env)->FindClass(env, "org/wasmedge/WasmEdgeI64Value");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_WasmEdgeI64Value = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+
+    tempLocalClassRef = (*env)->FindClass(env, "org/wasmedge/WasmEdgeF32Value");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_WasmEdgeF32Value = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+ 
+    tempLocalClassRef = (*env)->FindClass(env, "org/wasmedge/WasmEdgeF64Value");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_WasmEdgeF64Value = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+    
+    JMID_WasmEdgeI32Value_getValue = (*env)->GetMethodID(env, JC_WasmEdgeI32Value, "getValue", "()I");
+    JMID_WasmEdgeI64Value_getValue = (*env)->GetMethodID(env, JC_WasmEdgeI64Value, "getValue", "()J");
+    JMID_WasmEdgeF32Value_getValue = (*env)->GetMethodID(env, JC_WasmEdgeF32Value, "getValue", "()F");
+    JMID_WasmEdgeF64Value_getValue = (*env)->GetMethodID(env, JC_WasmEdgeF64Value, "getValue", "()D");
+
+    JMID_WasmEdgeI32Value_setValue = (*env)->GetMethodID(env, JC_WasmEdgeI32Value, "setValue", "(I)V");
+    JMID_WasmEdgeI64Value_setValue = (*env)->GetMethodID(env, JC_WasmEdgeI64Value, "setValue", "(J)V");
+    JMID_WasmEdgeF32Value_setValue = (*env)->GetMethodID(env, JC_WasmEdgeF32Value, "setValue", "(F)V");
+    JMID_WasmEdgeF64Value_setValue = (*env)->GetMethodID(env, JC_WasmEdgeF64Value, "setValue", "(D)V");
+
+    JMID_WasmEdgeI32Value_constructor = (*env)->GetMethodID(env, JC_WasmEdgeI32Value, "<init>", "()V");
+    JMID_WasmEdgeI64Value_constructor = (*env)->GetMethodID(env, JC_WasmEdgeI64Value, "<init>", "()V");
+    JMID_WasmEdgeF32Value_constructor = (*env)->GetMethodID(env, JC_WasmEdgeF32Value, "<init>", "()V");
+    JMID_WasmEdgeF64Value_constructor = (*env)->GetMethodID(env, JC_WasmEdgeF64Value, "<init>", "()V");
+
+    JMID_WasmEdgeI32Value_constructorWithParam = (*env)->GetMethodID(env, JC_WasmEdgeI32Value, "<init>", "(I)V");
+    JMID_WasmEdgeI64Value_constructorWithParam = (*env)->GetMethodID(env, JC_WasmEdgeI64Value, "<init>", "(J)V");
+    JMID_WasmEdgeF32Value_constructorWithParam = (*env)->GetMethodID(env, JC_WasmEdgeF32Value, "<init>", "(F)V");
+    JMID_WasmEdgeF64Value_constructorWithParam = (*env)->GetMethodID(env, JC_WasmEdgeF64Value, "<init>", "(D)V");
+
+    tempLocalClassRef = (*env)->FindClass(env, "org/wasmedge/WasmEdgeExternRef");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_WasmEdgeExternRef = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+
+    tempLocalClassRef = (*env)->FindClass(env, "org/wasmedge/WasmEdgeFuncRef");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_WasmEdgeFuncRef = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+
+    JMID_WasmEdgeExternRef_getValue = (*env)->GetMethodID(env, JC_WasmEdgeExternRef, "getValue", "()Ljava/lang/String;");
+    JMID_WasmEdgeExternRef_setValue = (*env)->GetMethodID(env, JC_WasmEdgeExternRef, "setValue", "(Ljava/lang/String;)V");
+
+    JMID_WasmEdgeExternRef_constructor = (*env)->GetMethodID(env, JC_WasmEdgeExternRef, "<init>", "()V");
+    JMID_WasmEdgeFuncRef_constructor = (*env)->GetMethodID(env, JC_WasmEdgeFuncRef, "<init>", "()V");
+
+
+    ///// List classes
+    tempLocalClassRef = (*env)->FindClass(env, "java/util/List");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_List = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+
+    tempLocalClassRef = (*env)->FindClass(env, "java/util/ArrayList");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_ArrayList = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+    
+    JMID_List_add = (*env)->GetMethodID(env, JC_List, "add", "(Ljava/lang/Object;)Z");
+    JMID_List_get = (*env)->GetMethodID(env, JC_List, "get", "(I)Ljava/lang/Object;");
+    JMID_List_size = (*env)->GetMethodID(env, JC_List, "size", "()I");
+
+    JMID_ArrayList_constructor = (*env)->GetMethodID(env, JC_ArrayList, "<init>", "(I)V");
+
+
+    ///// WasmEdgeValue
+    tempLocalClassRef = (*env)->FindClass(env, "org/wasmedge/WasmEdgeValue");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_WasmEdgeValue = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+
+    tempLocalClassRef = (*env)->FindClass(env, "org/wasmedge/enums/ValueType");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_ValueType = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+
+    JMID_WasmEdgeValue_getType = (*env)->GetMethodID(env, JC_WasmEdgeValue, "getType", "()Lorg/wasmedge/enums/ValueType;");
+
+    JMID_ValueType_getValue = (*env)->GetMethodID(env, JC_ValueType, "getValue", "()I");
+    JMID_ValueType_static_parseType = (*env)->GetStaticMethodID(env, JC_ValueType, "parseType", "(I)Lorg/wasmedge/enums/ValueType;");
+
+
+    ///// WasmEdgeLimit
+    tempLocalClassRef = (*env)->FindClass(env, "org/wasmedge/WasmEdgeLimit");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_WasmEdgeLimit = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+
+    JMID_WasmEdgeLimit_constructor = (*env)->GetMethodID(env, JC_WasmEdgeLimit, "<init>", "(ZJJ)V");
+
+
+    ///// FunctionInstanceContext
+    tempLocalClassRef = (*env)->FindClass(env, "org/wasmedge/FunctionInstanceContext");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_FunctionInstanceContext = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+
+    JMID_FunctionInstanceContext_static_callHostFunction = (*env)->GetStaticMethodID(env, JC_FunctionInstanceContext, "callHostFunction", "(JJLjava/util/List;Ljava/util/List;)Lorg/wasmedge/Result;");
+
+
+    ///// Result
+    tempLocalClassRef = (*env)->FindClass(env, "org/wasmedge/Result");
+    if (tempLocalClassRef == NULL) {
+        return JNI_ERR;
+    }
+    JC_Result = (jclass) (*env)->NewGlobalRef(env, tempLocalClassRef);
+    (*env)->DeleteLocalRef(env, tempLocalClassRef);
+
+    JMID_Result_isSuccess = (*env)->GetMethodID(env, JC_Result, "isSuccess", "()Z");
+    JMID_Result_isTerminate = (*env)->GetMethodID(env, JC_Result, "isTerminate", "()Z");
+
+
+    return JNI_VERSION;
+}
+
+void JNI_OnUnload(JavaVM *vm, void *reserved) {
+    // Obtain the JNIEnv from the VM
+    JNIEnv* env;
+    (*vm)->GetEnv(vm, (void **)&env, JNI_VERSION);
+
+    // Destroy the global references
+    (*env)->DeleteGlobalRef(env, JC_Class);
+    (*env)->DeleteGlobalRef(env, JC_Object);
+
+    (*env)->DeleteGlobalRef(env, JC_NoClassDefFoundError);
+    (*env)->DeleteGlobalRef(env, JC_NoSuchMethodError);
+    (*env)->DeleteGlobalRef(env, JC_Exception);
+    (*env)->DeleteGlobalRef(env, JC_RuntimeException);
+
+    (*env)->DeleteGlobalRef(env, JC_WasmEdgeI32Value);
+    (*env)->DeleteGlobalRef(env, JC_WasmEdgeI64Value);
+    (*env)->DeleteGlobalRef(env, JC_WasmEdgeF32Value);
+    (*env)->DeleteGlobalRef(env, JC_WasmEdgeF64Value);
+    (*env)->DeleteGlobalRef(env, JC_WasmEdgeExternRef);
+    (*env)->DeleteGlobalRef(env, JC_WasmEdgeFuncRef);
+
+    (*env)->DeleteGlobalRef(env, JC_List);
+    (*env)->DeleteGlobalRef(env, JC_ArrayList);
+
+    (*env)->DeleteGlobalRef(env, JC_WasmEdgeValue);
+    (*env)->DeleteGlobalRef(env, JC_ValueType);
+
+    (*env)->DeleteGlobalRef(env, JC_WasmEdgeLimit);
+
+    (*env)->DeleteGlobalRef(env, JC_FunctionInstanceContext);
+
+    (*env)->DeleteGlobalRef(env, JC_Result);
+}
+
+jstring call_Class_getName(JNIEnv *env, jclass clsObj) {
+    jstring strObj = (jstring)(*env)->CallObjectMethod(env, clsObj, JMID_Class_getName);
+    checkAndHandleException(env, "Class.getName() error");
+    return strObj;
+}
+
+jclass call_Object_getClass(JNIEnv *env, jobject obj) {
+    jclass clsObj = (jclass)(*env)->CallObjectMethod(env, obj, JMID_Object_getClass);
+    checkAndHandleException(env, "Object.getClass() error");
+    return clsObj;
+}
+
+jstring call_Object_toString(JNIEnv *env, jobject obj) {
+    jstring strObj = (jstring)(*env)->CallObjectMethod(env, obj, JMID_Object_toString);
+    checkAndHandleException(env, "Object.toString() error");
+    return strObj;
+}
+
 void exitWithError(enum ErrorCode error, char* message) {
      exit(-1);
 }
 
 void throwNoClassDefError(JNIEnv *env, char * message) {
-    jclass  exClass;
-    char *className = "java/lang/NoClassDefFoundError";
-
-    exClass = (*env)->FindClass(env, className);
-
-    if(exClass == NULL) {
-        exitWithError(JVM_ERROR, "Exception class not found.");
-    }
-    (*env)-> ThrowNew(env, exClass, message);
-
+    (*env)->ThrowNew(env, JC_NoClassDefFoundError, message);
     exitWithError(JVM_ERROR, "Exception thrown for no class def");
 }
 
 void throwNoSuchMethodError(JNIEnv *env, char* methodName, char* sig) {
-    jclass exClass;
-    char *className = "java/lang/NoSuchMethodError";
-
-    char message[1000];
-
-    strcat(message, methodName);
-    strcat(message, sig);
-
-    if(exClass == NULL) {
-        throwNoClassDefError(env, message);
-    }
-
-    (*env)->ThrowNew(env, exClass, methodName);
+    (*env)->ThrowNew(env, JC_NoSuchMethodError, methodName);
     exitWithError(JVM_ERROR, "Exception thrown for no such method");
 }
 
 
-jclass findJavaClass(JNIEnv* env, char * className) {
-    jclass class = (*env)->FindClass(env, className);
+jint call_WasmEdgeI32Value_getValue(JNIEnv *env, jobject val) {
+    jint value = (*env)->CallIntMethod(env, val, JMID_WasmEdgeI32Value_getValue);
+    checkAndHandleException(env, "Error in I32 getValue()");
+    return value;
+}
 
-    bool hasException = checkAndHandleException(env, "find class error");
-    if(hasException) {
+jlong call_WasmEdgeI64Value_getValue(JNIEnv *env, jobject val) {
+    jlong value = (*env)->CallLongMethod(env, val, JMID_WasmEdgeI64Value_getValue);
+    checkAndHandleException(env, "Error in I64 getValue()");
+    return value;
+}
+
+jfloat call_WasmEdgeF32Value_getValue(JNIEnv *env, jobject val) {
+    jfloat value = (*env)->CallFloatMethod(env, val, JMID_WasmEdgeF32Value_getValue);
+    checkAndHandleException(env, "Error in F32 getValue()");
+    return value;
+}
+
+jdouble call_WasmEdgeF64Value_getValue(JNIEnv *env, jobject val) {
+    jdouble value = (*env)->CallDoubleMethod(env, val, JMID_WasmEdgeF64Value_getValue);
+    checkAndHandleException(env, "Error in F64 getValue()");
+    return value;
+}
+
+
+void call_WasmEdgeI32Value_setValue(JNIEnv *env, jobject obj, jint val) {
+    (*env)->CallIntMethod(env, obj, JMID_WasmEdgeI32Value_setValue, val);
+    checkAndHandleException(env, "Error in I32 setValue()");
+}
+
+void call_WasmEdgeI64Value_setValue(JNIEnv *env, jobject obj, jlong val) {
+    (*env)->CallLongMethod(env, obj, JMID_WasmEdgeI64Value_setValue, val);
+    checkAndHandleException(env, "Error in I64 setValue()");
+}
+
+void call_WasmEdgeF32Value_setValue(JNIEnv *env, jobject obj, jfloat val) {
+    (*env)->CallFloatMethod(env, obj, JMID_WasmEdgeF32Value_setValue, val);
+    checkAndHandleException(env, "Error in F32 setValue()");
+}
+
+void call_WasmEdgeF64Value_setValue(JNIEnv *env, jobject obj, jdouble val) {
+    (*env)->CallDoubleMethod(env, obj, JMID_WasmEdgeF64Value_setValue, val);
+    checkAndHandleException(env, "Error in F64 setValue()");
+}
+
+jobject construct_WasmEdgeI32Value(JNIEnv *env) {
+    jobject jVal = (*env)->NewObject(env, JC_WasmEdgeI32Value, JMID_WasmEdgeI32Value_constructor);
+    return jVal;
+}
+
+jobject construct_WasmEdgeI64Value(JNIEnv *env) {
+    jobject jVal = (*env)->NewObject(env, JC_WasmEdgeI64Value, JMID_WasmEdgeI64Value_constructor);
+    return jVal;
+}
+
+jobject construct_WasmEdgeF32Value(JNIEnv *env) {
+    jobject jVal = (*env)->NewObject(env, JC_WasmEdgeF32Value, JMID_WasmEdgeF32Value_constructor);
+    return jVal;
+}
+
+jobject construct_WasmEdgeF64Value(JNIEnv *env) {
+    jobject jVal = (*env)->NewObject(env, JC_WasmEdgeF64Value, JMID_WasmEdgeF64Value_constructor);
+    return jVal;
+}
+
+jobject construct_WasmEdgeI32Value_withParam(JNIEnv *env, jint val) {
+    jobject jVal = (*env)->NewObject(env, JC_WasmEdgeI32Value, JMID_WasmEdgeI32Value_constructorWithParam, val);
+    return jVal;
+}
+
+jobject construct_WasmEdgeI64Value_withParam(JNIEnv *env, jlong val) {
+    jobject jVal = (*env)->NewObject(env, JC_WasmEdgeI64Value, JMID_WasmEdgeI64Value_constructorWithParam, val);
+    return jVal;
+}
+
+jobject construct_WasmEdgeF32Value_withParam(JNIEnv *env, jfloat val) {
+    jobject jVal = (*env)->NewObject(env, JC_WasmEdgeF32Value, JMID_WasmEdgeF32Value_constructorWithParam, val);
+    return jVal;
+}
+
+jobject construct_WasmEdgeF64Value_withParam(JNIEnv *env, jdouble val) {
+    jobject jVal = (*env)->NewObject(env, JC_WasmEdgeF64Value, JMID_WasmEdgeF64Value_constructorWithParam, val);
+    return jVal;
+}
+
+
+jstring call_WasmEdgeExternRef_getValue(JNIEnv *env, jobject val) {
+    jstring value = (jstring)(*env)->CallObjectMethod(env, val, JMID_WasmEdgeExternRef_getValue);
+    checkException(env, "Error in ExternRef getValue()");
+    return value;
+}
+
+void call_WasmEdgeExternRef_setValue(JNIEnv *env, jobject obj, jstring val) {
+    (*env)->CallObjectMethod(env, obj, JMID_WasmEdgeExternRef_setValue, val);
+    checkAndHandleException(env, "Error in ExternRef setValue()");
+}
+
+jobject construct_WasmEdgeExternRef(JNIEnv *env) {
+    jobject jVal = (*env)->NewObject(env, JC_WasmEdgeExternRef, JMID_WasmEdgeExternRef_constructor);
+    return jVal;
+}
+
+jobject construct_WasmEdgeFuncRef(JNIEnv *env) {
+    jobject jVal = (*env)->NewObject(env, JC_WasmEdgeFuncRef, JMID_WasmEdgeFuncRef_constructor);
+    return jVal;
+}
+
+void setJavaIntValue(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
+    int int_val = WasmEdge_ValueGetI32(val);
+
+    call_WasmEdgeI32Value_setValue(env, jobj, int_val);
+}
+
+void setJavaLongValue(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
+    int long_val = WasmEdge_ValueGetI64(val);
+
+    call_WasmEdgeI64Value_setValue(env, jobj, long_val);
+}
+
+void setJavaFloatValue(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
+    float float_val = WasmEdge_ValueGetF32(val);
+
+    call_WasmEdgeF32Value_setValue(env, jobj, float_val);
+}
+
+void setJavaDoubleValue(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
+    float double_val = WasmEdge_ValueGetF64(val);
+
+    call_WasmEdgeF64Value_setValue(env, jobj, double_val);
+}
+
+char* getExternRefStringVal(JNIEnv *env, jobject val) {
+    jstring value = call_WasmEdgeExternRef_getValue(env, val);
+ 
+    return JStringToCString(env, value);
+}
+
+void setExternRefStringVal(JNIEnv *env, WasmEdge_Value val, jobject jobj) {
+    char* key = WasmEdge_ValueGetExternRef(val);
+    jstring jkey = (*env)->NewStringUTF(env, key);
+    call_WasmEdgeExternRef_setValue(env, jobj, jkey);
+}
+
+
+jboolean call_List_add(JNIEnv *env, jobject jList, jobject ele) {
+    jboolean retVal = (*env)->CallBooleanMethod(env, jList, JMID_List_add, ele);
+    checkException(env, "Error calling List add()");
+    return retVal;
+}
+
+jobject call_List_get(JNIEnv* env, jobject jList, jint idx) {
+    jobject retVal = (*env)->CallObjectMethod(env, jList, JMID_List_get, idx);
+    checkException(env, "Error calling List get()");
+    return retVal;
+}
+
+jint call_List_size(JNIEnv* env, jobject jList) {
+    jint size = (*env)->CallIntMethod(env, jList, JMID_List_size);
+    checkException(env, "Error calling List size()");
+    return size;
+}
+
+jobject construct_ArrayList(JNIEnv *env, jint size) {
+    jobject jList = (*env)->NewObject(env, JC_ArrayList, JMID_ArrayList_constructor, size);
+    if(checkAndHandleException(env, "Error when creating ArrayList")) {
+        return NULL;
+    }
+    return jList;
+}
+
+
+jobject call_WasmEdgeValue_getType(JNIEnv *env, jobject obj) {
+    jobject valType = (*env)->CallObjectMethod(env, obj, JMID_WasmEdgeValue_getType);
+    checkException(env, "Error calling getType()");
+    return valType;
+}
+
+jint call_ValueType_getValue(JNIEnv *env, jobject obj) {
+    jint jType = (*env)->CallIntMethod(env, obj, JMID_ValueType_getValue);
+    checkException(env, "Error calling getValue()");
+    return jType;
+}
+
+jobject call_ValueType_static_parseType(JNIEnv *env, jint value) {
+    jobject valueType = (*env)->CallStaticObjectMethod(env, JC_ValueType, JMID_ValueType_static_parseType, value);
+
+    if(checkAndHandleException(env, "Error when creating value type")) {
         return NULL;
     }
 
-    if(class == NULL) {
-        throwNoClassDefError(env, className);
+    return valueType;
+}
+
+jobject construct_WasmEdgeLimit(JNIEnv *env, jboolean hasMax, jlong min, jlong max) {
+    jobject jLimit = (*env)->NewObject(env, JC_WasmEdgeLimit, JMID_WasmEdgeLimit_constructor, hasMax, min, max);
+    if(checkAndHandleException(env, "Error when creating WasmEdgeLimit")) {
+        return NULL;
     }
-    return class;
+    return jLimit;
 }
 
-jmethodID findJavaMethod(JNIEnv* env, jclass class, char* methodName, char* sig) {
-    jmethodID jmethodId = (*env)->GetMethodID(env, class, methodName, sig);
-    return jmethodId;
-
+jobject call_FunctionInstanceContext_static_callHostFunction(JNIEnv *env, jlong funcKey, jlong memContextpointer,
+        jobject paramList, jobject returnList) {
+    jobject result = (*env)->CallStaticObjectMethod(env, JC_FunctionInstanceContext, JMID_FunctionInstanceContext_static_callHostFunction,
+            funcKey, memContextpointer, paramList, returnList);
+    checkException(env, "Error calling callHostFunction");
+    return result;
 }
+
+jboolean call_Result_isSuccess(JNIEnv *env, jobject result) {
+    jboolean isSuccess = (*env)->CallBooleanMethod(env, result, JMID_Result_isSuccess);
+    checkException(env, "Error calling isSuccess method");
+    return isSuccess;
+}
+
+jboolean call_Result_isTerminate(JNIEnv *env, jobject result) {
+    jboolean isTerminate = (*env)->CallBooleanMethod(env, result, JMID_Result_isTerminate);
+    checkException(env, "Error calling isTerminate method");
+    return isTerminate;
+}
+
 
 void getClassName(JNIEnv* env, jobject obj, char* buff) {
-    jclass cls = (*env)->GetObjectClass(env, obj);
+    jclass clsObj = call_Object_getClass(env, obj);
+    jstring strObj = call_Class_getName(env, clsObj);
 
-// First get the class object
-    jmethodID mid = (*env)->GetMethodID(env, cls, "getClass", "()Ljava/lang/Class;");
-    jobject clsObj = (*env)->CallObjectMethod(env, obj, mid);
-    checkAndHandleException(env, "get class name error");
-
-// Now get the class object's class descriptor
-    cls = (*env)->GetObjectClass(env, clsObj);
-
-// Find the getName() method on the class object
-    mid = (*env)->GetMethodID(env, cls, "getName", "()Ljava/lang/String;");
-
-// Call the getName() to get a jstring object back
-    jstring strObj = (jstring)(*env)->CallObjectMethod(env, clsObj, mid);
-    checkAndHandleException(env, "get name error");
-
-// Now get the c string from the java jstring object
     const char* str = (*env)->GetStringUTFChars(env, strObj, NULL);
-
-// Print the class name
     strcpy(buff, str);
-
-// Release the memory pinned char array
     (*env)->ReleaseStringUTFChars(env, strObj, str);
+
+    (*env)->DeleteLocalRef(env, strObj);
+    (*env)->DeleteLocalRef(env, clsObj);
 }
 
 void handleWasmEdgeResult(JNIEnv* env, WasmEdge_Result * result) {
     if(!WasmEdge_ResultOK(*result)) {
         char exceptionBuffer[1024];
-        sprintf(exceptionBuffer, "Error occurred with message: %s.",
-                WasmEdge_ResultGetMessage(*result));
+        sprintf(exceptionBuffer, "Error occurred with message: %s.", WasmEdge_ResultGetMessage(*result));
 
-        (*env)->ThrowNew(env, (*env)->FindClass(env, "java/lang/Exception"),
-                         exceptionBuffer);
+        (*env)->ThrowNew(env, JC_Exception, exceptionBuffer);
     }
 }
 
-int getIntVal(JNIEnv *env, jobject val) {
-    jclass clazz = (*env)->GetObjectClass(env, val);
-    jmethodID methodId = findJavaMethod(env, clazz, "getValue", "()I");
-
-    jint value = (*env)->CallIntMethod(env, val, methodId);
-    checkAndHandleException(env, "Error get int value");
-    return value;
-}
-
-long getLongVal(JNIEnv *env, jobject val) {
-    jclass clazz = (*env)->GetObjectClass(env, val);
-
-    jmethodID methodId = (*env)->GetMethodID(env, clazz, "getValue", "()J");
-    jlong value = (*env)->CallLongMethod(env, val, methodId);
-    checkException(env, "Error calling getValue()");
-    return value;
-}
-
-long getFloatVal(JNIEnv *env, jobject val) {
-    jclass clazz = (*env)->GetObjectClass(env, val);
-    jmethodID methodId = findJavaMethod(env, clazz, "getValue", "()F");
-    jfloat value = (*env)->CallFloatMethod(env, val, methodId);
-    checkException(env, "Error calling getValue()");
-    return value;
-}
-
-double getDoubleVal(JNIEnv *env, jobject val) {
-    jclass clazz = (*env)->GetObjectClass(env, val);
-    jmethodID methodId = findJavaMethod(env, clazz, "getValue", "()D");
-    jdouble value = (*env)->CallDoubleMethod(env, val, methodId);
-    checkException(env, "Error calling getValue()");
-    return value;
-}
-
-char* getStringVal(JNIEnv *env, jobject val) {
-    jclass clazz = (*env)->GetObjectClass(env, val);
-
-    jmethodID methodId = findJavaMethod(env, clazz, "getValue", "()Ljava/lang/String;");
-
-    jstring value = (jstring)(*env)->CallObjectMethod(env, val, methodId);
-    checkException(env, "Error calling getValue()");
-
-    const char* c_str = (*env)->GetStringUTFChars(env, value, NULL);
-    size_t len = (*env)->GetStringUTFLength(env, value);
-    char * buf = malloc(sizeof(char) * len);
-
-    memcpy(buf, c_str, len);
-
-    (*env)->ReleaseStringUTFChars(env, val, c_str);
-    return buf;
-}
 
 // The returned array needs freeing once no longer used
 WasmEdge_Value *parseJavaParams(JNIEnv *env, jobjectArray params, jintArray paramTypes, jint paramSize) {
 
     WasmEdge_Value *wasm_params = calloc(paramSize, sizeof(WasmEdge_Value));
-    int *type = (*env)->GetIntArrayElements(env, paramTypes, JNI_FALSE);
+    int *type = (*env)->GetIntArrayElements(env, paramTypes, NULL);
     checkException(env, "Error getting param types");
+
     for (int i = 0; i < paramSize; i++) {
         WasmEdge_Value val;
 
@@ -169,36 +612,39 @@ WasmEdge_Value *parseJavaParams(JNIEnv *env, jobjectArray params, jintArray para
         checkException(env, "Error getting param");
 
         switch (type[i]) {
-
             case 0:
-                val = WasmEdge_ValueGenI32(getIntVal(env, val_object));
+                val = WasmEdge_ValueGenI32(call_WasmEdgeI32Value_getValue(env, val_object));
                 break;
             case 1:
-                val = WasmEdge_ValueGenI64(getLongVal(env, val_object));
+                val = WasmEdge_ValueGenI64(call_WasmEdgeI64Value_getValue(env, val_object));
                 break;
             case 2:
-                val = WasmEdge_ValueGenF32(getFloatVal(env, val_object));
+                val = WasmEdge_ValueGenF32(call_WasmEdgeF32Value_getValue(env, val_object));
                 break;
             case 3:
-                val = WasmEdge_ValueGenF64(getDoubleVal(env, val_object));
+                val = WasmEdge_ValueGenF64(call_WasmEdgeF64Value_getValue(env, val_object));
                 break;
             case 4:
                 //TODO
-                val = WasmEdge_ValueGenV128(getLongVal(env, val_object));
+                val = WasmEdge_ValueGenV128(call_WasmEdgeI64Value_getValue(env, val_object));
                 break;
             case 5:
                 //TODO
-                val = WasmEdge_ValueGenFuncRef(getLongVal(env, val_object));
+                val = WasmEdge_ValueGenFuncRef(call_WasmEdgeI64Value_getValue(env, val_object));
                 break;
             case 6:
                 //TODO
-                val = WasmEdge_ValueGenExternRef(&val_object);
+                val = WasmEdge_ValueGenExternRef(getExternRefStringVal(env, val_object));
                 break;
             default:
                 break;
         }
         wasm_params[i] = val;
+
+        (*env)->DeleteLocalRef(env, val_object);
     }
+
+    (*env)->ReleaseIntArrayElements(env, paramTypes, type, 0);
 
     return wasm_params;
 }
@@ -219,51 +665,54 @@ enum WasmEdge_ValType *parseValueTypesWithLen(JNIEnv *env, jintArray jValueTypes
     }
 
     enum WasmEdge_ValType* valTypes = malloc(len * sizeof(enum  WasmEdge_ValType));
+
     jint* elements = (*env)->GetIntArrayElements(env, jValueTypes, false);
     checkException(env, "Error getting value types");
     for (int i = 0; i < len; ++i) {
         valTypes[i] = elements[i];
     }
+
+    (*env)->ReleaseIntArrayElements(env, jValueTypes, elements, 0);
+
     return valTypes;
 }
 
 bool checkException(JNIEnv *env, const char* msg) {
     if((*env)->ExceptionCheck(env)) {
-        jthrowable e = (*env)->ExceptionOccurred(env);
+        jthrowable err = (*env)->ExceptionOccurred(env);
         (*env)->ExceptionClear(env);
 
-        jclass eclass = (*env)->GetObjectClass(env, e);
+        jstring jErrorMsg = call_Object_toString(env, err);
 
-        jmethodID mid = (*env)->GetMethodID(env, eclass, "toString", "()Ljava/lang/String;");
-        jstring jErrorMsg = (*env)->CallObjectMethod(env, e, mid);
         const char* cMsg = (*env)->GetStringUTFChars(env, jErrorMsg, NULL);
 		fprintf(stderr, "%s: %s\n", msg, cMsg);
         (*env)->ReleaseStringUTFChars(env, jErrorMsg, cMsg);
+
+        (*env)->DeleteLocalRef(env, jErrorMsg);
+        (*env)->DeleteLocalRef(env, err);
 
         return true;
     }
+
     return false;
 }
 
-
 bool checkAndHandleException(JNIEnv *env, const char* msg) {
     if((*env)->ExceptionCheck(env)) {
-        jthrowable e = (*env)->ExceptionOccurred(env);
+        jthrowable err = (*env)->ExceptionOccurred(env);
         (*env)->ExceptionClear(env);
 
-        jclass eclass = (*env)->GetObjectClass(env, e);
+        jstring jErrorMsg = call_Object_toString(env, err);
 
-        jmethodID mid = (*env)->GetMethodID(env, eclass, "toString", "()Ljava/lang/String;");
-        jstring jErrorMsg = (*env)->CallObjectMethod(env, e, mid);
         const char* cMsg = (*env)->GetStringUTFChars(env, jErrorMsg, NULL);
 		fprintf(stderr, "%s: %s\n", msg, cMsg);
         (*env)->ReleaseStringUTFChars(env, jErrorMsg, cMsg);
 
-        jclass newExcCls = (*env)->FindClass(env, "java/lang/RuntimeException");
-        if (newExcCls == 0) { /* Unable to find the new exception class, give up. */
-            return true;
-        }
-        (*env)->ThrowNew(env, newExcCls, msg);
+        (*env)->ThrowNew(env, JC_RuntimeException, msg);
+
+        (*env)->DeleteLocalRef(env, jErrorMsg);
+        (*env)->DeleteLocalRef(env, err);
+
         return true;
     }
     return false;
@@ -287,77 +736,11 @@ void setJavaValueObject(JNIEnv *env, WasmEdge_Value value, jobject j_val) {
             setJavaDoubleValue(env, value, j_val);
             break;
         case WasmEdge_ValType_ExternRef:
-            setJavaStringValue(env, value, j_val);
+            setExternRefStringVal(env, value, j_val);
             break;
         default:
             break;
     }
-}
-
-jobject CreateJavaArrayList(JNIEnv* env, jint len) {
-    jclass listClass = findJavaClass(env, "java/util/ArrayList");
-
-    if(checkAndHandleException(env, "Error looking up ArrayList class")) {
-        return NULL;
-    }
-
-    if (listClass == NULL) {
-        return NULL;
-    }
-
-    jmethodID listConstructor = findJavaMethod(env, listClass, "<init>", "(I)V");
-
-    if(checkAndHandleException(env, "Error looking up ArrayList constructor")) {
-        return NULL;
-    }
-
-    if(listConstructor == NULL) {
-        return NULL;
-    }
-
-    jobject jList = (*env)->NewObject(env, listClass, listConstructor, len);
-
-    if(checkAndHandleException(env, "Error when creating java list")) {
-        return NULL;
-    }
-
-    if(jList == NULL) {
-        return NULL;
-    }
-
-    return jList;
-}
-
-bool AddElementToJavaList(JNIEnv* env, jobject jList, jobject ele) {
-    jclass listClass = findJavaClass(env, "java/util/ArrayList");
-
-    if (listClass == NULL) {
-        return false;
-    }
-
-    jmethodID addMethod = findJavaMethod(env, listClass, "add", "(Ljava/lang/Object;)Z");
-
-    jboolean retVal = (*env)->CallBooleanMethod(env, jList, addMethod, ele);
-    checkException(env, "Error calling add()");
-    return retVal;
-}
-
-jobject GetListElement(JNIEnv* env, jobject jList, jint idx) {
-    jclass listClass = (*env)->GetObjectClass(env, jList);
-    jmethodID getMethod = findJavaMethod(env, listClass, "get", "(I)Ljava/lang/Object;");
-
-    jobject retVal = (*env)->CallObjectMethod(env, jList, getMethod, idx);
-    checkException(env, "Error calling get()");
-    return retVal;
-}
-
-jint GetListSize(JNIEnv* env, jobject jList) {
-    jclass listClass = (*env)->GetObjectClass(env, jList);
-    jmethodID sizeMethod = (*env)->GetMethodID(env, listClass, "size", "()I");
-    jint size = (*env)->CallIntMethod(env, jList, sizeMethod);
-    checkException(env, "Error calling size()");
-
-    return size;
 }
 
 jstring WasmEdgeStringToJString(JNIEnv* env, WasmEdge_String wStr) {
@@ -371,15 +754,18 @@ jstring WasmEdgeStringToJString(JNIEnv* env, WasmEdge_String wStr) {
 }
 
 // Call 'free' on the returned string when no longer needed
-const char *JStringToCString(JNIEnv *env, jstring jstr) {
+char *JStringToCString(JNIEnv *env, jstring jstr) {
     const char *strPtr = (*env)->GetStringUTFChars(env, jstr, NULL);
+    size_t len = (*env)->GetStringUTFLength(env, jstr);
+    char *cStr = malloc(sizeof(char) * len);
 
-    const char *cStr = strdup(strPtr);
+    memcpy(cStr, strPtr, len);
 
     (*env)->ReleaseStringUTFChars(env, jstr, strPtr);
 
     return cStr;
 }  
+
 
 // Call 'WasmEdge_StringDelete' on the returned string when no longer needed
 WasmEdge_String JStringToWasmString(JNIEnv* env, jstring jstr) {
@@ -393,39 +779,40 @@ WasmEdge_String JStringToWasmString(JNIEnv* env, jstring jstr) {
 }
 
 // All strings in the array need releasing with ReleaseStringUTFCHars
-const char** JStringArrayToPtr(JNIEnv* env, jarray jStrArray) {
+const char** JStringArrayToPtrArray(JNIEnv* env, jarray jStrArray) {
     int len = (*env)->GetArrayLength(env, jStrArray);
 
     const char** ptr = malloc(sizeof(char*) * len);
 
     for(int i = 0; i < len; i++) {
         jstring  jStr = (*env)->GetObjectArrayElement(env, jStrArray, i);
-        checkException(env, "Error getting string array");
+        checkException(env, "Error getting array element");
         const char* strPtr = (*env)->GetStringUTFChars(env, jStr, NULL);
         ptr[i] = strPtr;
     }
     return ptr;
 }
 
-// Non-functional currently
-void ReleaseCString(JNIEnv* env, jarray jStrArray, const char** ptr) {
+// Untested
+void ReleasePtrArray(JNIEnv* env, jarray jStrArray, const char** ptr) {
     int len = (*env)->GetArrayLength(env, jStrArray);
 
     for(int i = 0; i < len; i++) {
         jstring jStr = (*env)->GetObjectArrayElement(env, jStrArray, i);
-        checkException(env, "Error getting object array");
-        //TODO fixeme
-        //(*env)->ReleaseStringUTFChars(env, jStr, ptr[i]);
+        checkException(env, "Error getting array element");
+        (*env)->ReleaseStringUTFChars(env, jStr, ptr[i]);
     }
+
+    free(ptr);
 }
 
 jobject WasmEdgeStringArrayToJavaList(JNIEnv* env, WasmEdge_String* wStrList, int32_t len) {
-    jobject strList = CreateJavaArrayList(env, len);
+    jobject strList = construct_ArrayList(env, len);
 
     for (int i = 0; i < len; ++i) {
-
         jstring jstr = WasmEdgeStringToJString(env, wStrList[i]);
-        AddElementToJavaList(env, strList, jstr);
+        call_List_add(env, strList, jstr);
+        (*env)->DeleteLocalRef(env, jstr);
     }
     return strList;
 }

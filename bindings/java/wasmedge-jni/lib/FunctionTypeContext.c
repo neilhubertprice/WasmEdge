@@ -55,75 +55,17 @@ JNIEXPORT void JNICALL Java_org_wasmedge_FunctionTypeContext_nativeDelete
 }
 
 jobject ConvertToJavaValueType(JNIEnv* env, enum WasmEdge_ValType* valType) {
-
-    jclass  valueTypeCalss = findJavaClass(env, "org/wasmedge/enums/ValueType");
-    if(valueTypeCalss == NULL) {
-        return NULL;
-    }
-
-    jmethodID jmethodId = (*env)->GetStaticMethodID(env, valueTypeCalss, "parseType", "(I)Lorg/wasmedge/enums/ValueType;");
-
-    if(jmethodId == NULL) {
-        return NULL;
-    }
-
-    jobject  valueType = (*env)->CallStaticObjectMethod(env, valueTypeCalss, jmethodId, (jint)*valType);
-
-    if(checkAndHandleException(env, "Error when creating value type")) {
-        return NULL;
-    }
-
-    return valueType;
+    return call_ValueType_static_parseType(env, (jint)*valType);
 }
 
-
-
 jobject ConvertToValueTypeList(JNIEnv* env, enum WasmEdge_ValType* list, int32_t len) {
-    jclass listClass = findJavaClass(env, "java/util/ArrayList");
+    jobject jList = construct_ArrayList(env, len);
 
-    if (listClass == NULL) {
-        return NULL;
-    }
-
-    jmethodID listConstructor = findJavaMethod(env, listClass, "<init>", "(I)V");
-
-    if(listConstructor == NULL) {
-        return NULL;
-    }
-
-    jobject jList = (*env)->NewObject(env, listClass, listConstructor, len);
-
-    if(jList == NULL) {
-        return NULL;
-    }
-
-    if(checkAndHandleException(env, "Error when creating value type list")) {
-        return NULL;
-    }
-
-    char buf[256];
-    getClassName(env, jList, buf);
-
-
-    jmethodID addMethod = findJavaMethod(env, listClass, "add", "(Ljava/lang/Object;)Z");
-
-    if(addMethod == NULL) {
-        return NULL;
-    }
-
-    enum WasmEdge_ValType* ptr = list;
     for (int i = 0; i < len; ++i) {
-        jobject valueType = ConvertToJavaValueType(env, ptr);
-
-        (*env)->CallBooleanMethod(env, jList, addMethod, valueType);
-
-        if(checkAndHandleException(env, "Error when adding value type")) {
-            return NULL;
-        }
-
-        ptr++;
+        jobject valueType = call_ValueType_static_parseType(env, (jint)list[i]);
+        call_List_add(env, jList, valueType);
+        (*env)->DeleteLocalRef(env, valueType);
     }
 
     return jList;
-
 }

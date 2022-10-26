@@ -32,12 +32,7 @@ JNIEXPORT void JNICALL Java_org_wasmedge_TableInstanceContext_nativeSetData
 JNIEXPORT jobject JNICALL Java_org_wasmedge_TableInstanceContext_nativeGetData
         (JNIEnv * env, jobject thisObject, jlong tableInstancePointer, jobject jValType, jint jOffSet) {
     WasmEdge_TableInstanceContext *tableInstanceContext = (WasmEdge_TableInstanceContext *)tableInstancePointer;
-
-    jclass typeClass = (*env)->GetObjectClass(env, jValType);
-    jmethodID typeGetter = (*env)->GetMethodID(env, typeClass, "getValue", "()I");
-
-    jint valType = (*env)->CallIntMethod(env, jValType, typeGetter);
-    checkException(env, "Error calling getValue()");
+    jint valType = call_ValueType_getValue(env, jValType);
 
     WasmEdge_Value val;
 
