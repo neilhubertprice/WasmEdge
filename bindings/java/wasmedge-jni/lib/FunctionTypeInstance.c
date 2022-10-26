@@ -15,13 +15,6 @@ WasmEdge_Result HostFuncWrap(void *This, void* Data, WasmEdge_MemoryInstanceCont
     JNIEnv *env = This;
     long funcKey = (long)Data;
 
-    jclass clazz = (*env)->FindClass(env, "org/wasmedge/FunctionInstanceContext");
-
-    jmethodID funcCallHF = (*env)->GetStaticMethodID(env, clazz, "callHostFunction", "(JJLjava/util/List;Ljava/util/List;)Lorg/wasmedge/Result;");
-    if(checkException(env, "Error looking up callHostFunction")) {
-        return WasmEdge_Result_Fail;
-    }
-
     jobject jParams = construct_ArrayList(env, InLen);
 
     for (int i = 0; i < InLen; ++i) {

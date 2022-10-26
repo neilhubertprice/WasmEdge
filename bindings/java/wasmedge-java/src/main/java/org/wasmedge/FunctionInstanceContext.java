@@ -36,8 +36,6 @@ public class FunctionInstanceContext extends AbstractWasmEdgeContext {
     public static Result callHostFunction(long funcKey, long memoryInstancePointer, List<WasmEdgeValue> params, List<WasmEdgeValue> returns) {
         final HostFunction hostFunction = FunctionInstanceContext.getHostFunction((int)funcKey);
 
-        System.out.println("HostFunction called: " + hostFunction.toString());
-
         MemoryInstanceContext memoryInstanceContext = new MemoryInstanceContext(memoryInstancePointer);
 
         Result result = hostFunction.apply(memoryInstanceContext, params, returns);
